@@ -46,7 +46,7 @@ class DataController extends Controller
     {
         $iddata = $request->input('iddata');
         $kode = $request->input('kode');
-
+        
         $karyawan = DB::table('hrd_karyawan')
             ->select(
                 'nik',
@@ -60,6 +60,7 @@ class DataController extends Controller
                 'idpt'
             )
             ->where('aktif', 'Y')
+            ->where('status_karyawan', 1)
             ->when($iddata, fn($q) => $q->where('iddata', $iddata))
             ->when($kode, fn($q) => $q->where('bag', $kode))
             ->orderBy('nama')
@@ -136,7 +137,7 @@ class DataController extends Controller
             )
             ->where('a.divisiid', $divisiid)
             ->where('a.aktif', 'Y')
-            ->whereNotIn('a.kerja', ['00026']) // bukan borongan
+            ->whereNotIn('a.status_karyawan', [1, 3])
             ->orderBy('a.nama')
             ->get();
 
@@ -168,7 +169,7 @@ class DataController extends Controller
             )
             ->where('a.divisiid', $divisiid)
             ->where('a.aktif', 'Y')
-            ->whereIn('a.kerja', ['00026']) // hanya borongan
+            ->where('a.status_karyawan', 3)
             ->orderBy('a.nama')
             ->get();
 
