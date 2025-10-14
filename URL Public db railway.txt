@@ -1,0 +1,13 @@
+URL Public Network
+postgresql://postgres:ChxEMCjBieJGuHxOaiTCGJUWcklVKzPh@nozomi.proxy.rlwy.net:21884/railway
+
+Pass Public Network
+PGPASSWORD=ChxEMCjBieJGuHxOaiTCGJUWcklVKzPh psql -h nozomi.proxy.rlwy.net -U postgres -p 21884 -d railway
+
+railway CLI Public Network
+railway connect Postgres
+
+
+
+Private Network
+${{ Postgres.DATABASE_URL }}

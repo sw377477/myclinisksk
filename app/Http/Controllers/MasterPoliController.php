@@ -7,47 +7,65 @@ use Illuminate\Http\Request;
 
 class MasterPoliController extends Controller
 {
-    // Tampilkan semua data
+    // 🔹 Tampilkan data sesuai lokasi (idpay)
     public function index()
     {
-        $data = Poli::orderBy('id_poli')->get();
+        $idpay = session('idpay');
+        if (!$idpay) {
+            return redirect()->back()->with('error', 'Session lokasi tidak ditemukan.');
+        }
+
+        $data = Poli::where('idpay', $idpay)
+                    ->orderBy('id_poli')
+                    ->get();
+
         return view('master.poli', compact('data'));
     }
 
-    // Form tambah
-    public function create()
-    {
-        return view('master.poli_create');
-    }
-
-    // Simpan data baru
+    // 🔹 Simpan data baru
     public function store(Request $request)
     {
+        $idpay = session('idpay');
+        if (!$idpay) {
+            return redirect()->back()->with('error', 'Session lokasi tidak ditemukan.');
+        }
+
         $request->validate([
+            'id_poli' => 'required|string|max:20',
             'poli' => 'required|string|max:50',
             'nama_medis' => 'nullable|string|max:150',
         ]);
 
-        // Generate id_poli otomatis
-        $id = 'POLI' . str_pad(Poli::count() + 1, 3, '0', STR_PAD_LEFT);
+        $exists = Poli::where('id_poli', $request->id_poli)
+                      ->where('idpay', $idpay)
+                      ->exists();
+
+        if ($exists) {
+            return redirect()->back()->with('error', 'ID Poli sudah terdaftar untuk lokasi ini.');
+        }
 
         Poli::create([
-            'id_poli' => $id,
+            'id_poli' => $request->id_poli,
             'poli' => $request->poli,
-            'nama_medis' => $request->nama_medis
+            'nama_medis' => $request->nama_medis,
+            'idpay' => $idpay,
         ]);
 
         return redirect()->route('master.poli.index')->with('success', 'Data berhasil ditambahkan.');
     }
 
-    // Form edit
+    // 🔹 Form edit
     public function edit($id)
     {
-        $row = Poli::findOrFail($id);
+        $idpay = session('idpay');
+        $row = Poli::where('idpay', $idpay)
+                   ->where('id_serial', $id)
+                   ->firstOrFail();
+
         return view('master.poli_edit', compact('row'));
     }
 
-    // Update data
+    // 🔹 Update data
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -55,21 +73,71 @@ class MasterPoliController extends Controller
             'nama_medis' => 'nullable|string|max:150',
         ]);
 
-        $row = Poli::findOrFail($id);
+        $idpay = session('idpay');
+
+        $row = Poli::where('id_serial', $id)
+                   ->where('idpay', $idpay)
+                   ->first();
+
+        if (!$row) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data tidak ditemukan untuk lokasi ini.'
+            ], 404);
+        }
+
         $row->update([
             'poli' => $request->poli,
             'nama_medis' => $request->nama_medis
         ]);
 
-        return redirect()->route('master.poli.index')->with('success', 'Data berhasil diupdate.');
+        return response()->json([
+            'success' => true,
+            'message' => 'Data berhasil diupdate.'
+        ]);
     }
 
-    // Hapus data
+    // 🔹 Hapus data
     public function destroy($id)
     {
-        $row = Poli::findOrFail($id);
+        $idpay = session('idpay');
+        $row = Poli::where('idpay', $idpay)
+                   ->where('id_serial', $id)
+                   ->firstOrFail();
+
         $row->delete();
 
-        return redirect()->route('master.poli.index')->with('success', 'Data berhasil dihapus.');
+        return response()->json(['success' => true]);
+    }
+
+    // 🔹 Update satu kolom via AJAX (inline edit)
+    public function updateField(Request $request)
+    {
+        $idpay = session('idpay');
+
+        $request->validate([
+            'id' => 'required|integer',
+            'field' => 'required|in:poli,nama_medis',
+            'value' => 'nullable|string|max:150',
+        ]);
+
+        $row = Poli::where('idpay', $idpay)
+                   ->where('id_serial', $request->id)
+                   ->first();
+
+        if (!$row) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data tidak ditemukan untuk lokasi ini.'
+            ], 404);
+        }
+
+        $row->{$request->field} = $request->value;
+        $row->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => ucfirst($request->field) . ' berhasil diupdate.'
+        ]);
     }
 }

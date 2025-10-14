@@ -41,9 +41,24 @@ class AuthController extends Controller
 
     public function pilihLokasi(Request $request)
     {
-        session(['lokasi' => $request->lokasi]);
-        return redirect('/home');
+    $iddata = $request->iddata;
+
+    // Ambil nama lokasi berdasarkan iddata
+    $lokasiData = DB::table('rme_login_lokasi')
+                ->where('iddata', $iddata)
+                ->first(); // ambil seluruh row;
+    if (!$lokasiData) {
+        return back()->with('error', 'Lokasi tidak ditemukan');
     }
+
+    // Set session
+    session([
+        'iddata' => $iddata,
+        'lokasi' => $lokasiData->lokasi,  // nama lokasi
+        'idpay'  => $lokasiData->idpay,   // idpay
+    ]);
+    return redirect('/home');
+}
 
     public function home()
     {
@@ -51,6 +66,8 @@ class AuthController extends Controller
         $lokasi = session('lokasi');
 
         if (!$user || !$lokasi) return redirect('/login');
+
+       
 
         return view('home', compact('user', 'lokasi'));
     }

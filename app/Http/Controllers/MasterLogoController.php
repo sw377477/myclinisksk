@@ -1,64 +1,131 @@
 <?php
-
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Logo;
+use Illuminate\Support\Facades\Storage;
 
 class MasterLogoController extends Controller
 {
-    public function index()
-    {
-        $data = Logo::orderBy('iddata')->get();
-        return view('master.logo', compact('data'));
+    public function uploadLogo(Request $request)
+{
+    $request->validate([
+        'logo' => 'required|image|mimes:png,jpg,jpeg|max:2048',
+    ]);
+
+    $iddata = session('iddata');
+
+    if (!$iddata) {
+        return back()->with('error', 'ID Data tidak ditemukan, silakan pilih lokasi dulu.');
     }
 
-    public function create()
+    $path = $request->file('logo')->store('logo', 'public');
+
+    // pakai Eloquent, biar rapi
+    Logo::updateOrCreate(
+        ['iddata' => $iddata],
+        ['logo'   => $path]
+    );
+
+    return back()->with('success', 'Logo berhasil diupload.');
+}
+
+
+    
+    public function index()
     {
-        return view('master.logo_create');
+        //$iddata = session('iddata');
+        $lokasi = session('lokasi');
+
+        $iddata = session('iddata'); // ambil dari session
+
+        $logo = Logo::where('iddata', $iddata)->first();
+
+        return view('master.logo', compact('iddata', 'lokasi', 'logo'));
     }
 
     public function store(Request $request)
-    {
-        $request->validate([
-            'logo' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
-        ]);
+{
+    $request->validate([
+        'logo' => 'required|image|mimes:png,jpg,jpeg|max:2048',
+    ]);
 
-        $logo = new Logo();
-        if($request->hasFile('logo')){
-            $logo->logo = file_get_contents($request->file('logo')->getRealPath());
+    // cek dulu
+    //dd(session('iddata'));
+
+    //$iddata = session('iddata');
+
+    // TESTING: pakai iddata fixed
+    $iddata = session('iddata'); // ambil dari session
+
+    if (!$iddata) {
+        return back()->with('error', 'ID Data tidak ditemukan, silakan pilih lokasi dulu.');
+    }
+
+    
+
+    $file = $request->file('logo');
+    $path = $file->store('logo', 'public');
+
+    // Insert / Update
+    Logo::updateOrCreate(
+        ['iddata' => $iddata],
+        ['logo' => $path]
+    );
+    return redirect()->route('master.logo.index')->with('success', 'Logo berhasil disimpan.');
+
+
+    //return back()->with('success', 'Logo berhasil disimpan.');
+}
+
+
+
+    public function update(Request $request)
+{
+    $request->validate([
+        'logo' => 'required|image|mimes:png,jpg,jpeg|max:2048',
+    ]);
+
+    //$iddata = session('iddata');
+    $iddata = session('iddata'); // ambil dari session
+
+    if (!$iddata) {
+        return redirect()->route('master.logo.index')->with('success', 'Logo berhasil disimpan.');
+
+    }
+
+    $file = $request->file('logo');
+
+    // hapus logo lama
+    $logo = Logo::where('iddata', $iddata)->first();
+    if ($logo && $logo->logo && \Storage::disk('public')->exists($logo->logo)) {
+        \Storage::disk('public')->delete($logo->logo);
+    }
+
+    $path = $file->store('logo', 'public');
+
+    Logo::updateOrCreate(
+        ['iddata' => $iddata],
+        ['logo' => $path]
+    );
+
+    return redirect()->route('master.logo.index')->with('success', 'Logo berhasil diperbarui.');
+}
+
+
+    public function destroy()
+    {
+        //$iddata = session('iddata');
+        $iddata = session('iddata'); // ambil dari session
+        $logo = Logo::where('iddata', $iddata)->first();
+
+        if ($logo) {
+            if ($logo->logo && Storage::disk('public')->exists($logo->logo)) {
+                Storage::disk('public')->delete($logo->logo);
+            }
+            $logo->delete();
         }
-        $logo->save();
 
-        return redirect()->route('master.logo.index')->with('success', 'Data berhasil ditambahkan.');
-    }
-
-    public function edit($id)
-    {
-        $row = Logo::findOrFail($id);
-        return view('master.logo_edit', compact('row'));
-    }
-
-    public function update(Request $request, $id)
-    {
-        $request->validate([
-            'logo' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
-        ]);
-
-        $row = Logo::findOrFail($id);
-        if($request->hasFile('logo')){
-            $row->logo = file_get_contents($request->file('logo')->getRealPath());
-        }
-        $row->save();
-
-        return redirect()->route('master.logo.index')->with('success', 'Data berhasil diupdate.');
-    }
-
-    public function destroy($id)
-    {
-        $row = Logo::findOrFail($id);
-        $row->delete();
-        return redirect()->route('master.logo.index')->with('success', 'Data berhasil dihapus.');
+        return redirect()->route('master.logo.index')->with('success', 'Logo berhasil dihapus.');
     }
 }

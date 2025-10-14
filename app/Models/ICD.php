@@ -11,7 +11,7 @@ class ICD extends Model
     protected $table = 'rme_master_icd';
 
     // Primary key
-    //protected $primaryKey = 'id_kunjungan';
+    protected $primaryKey = 'kode_icd';
 
     // Kalau primary key bukan integer auto-increment
     public $incrementing = false;

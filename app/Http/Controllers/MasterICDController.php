@@ -1,58 +1,86 @@
 <?php
 
 namespace App\Http\Controllers;
-
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\ICD;
+use Illuminate\Http\Request;
 
 class MasterICDController extends Controller
 {
+    // Tampilkan semua data
     public function index()
     {
         $data = ICD::orderBy('kode_icd')->get();
         return view('master.icd', compact('data'));
     }
 
+    // Form tambah
     public function create()
     {
-        return view('master.icd_create');
+        return view('master.icd.create');
     }
 
+    // Simpan data baru
     public function store(Request $request)
     {
         $request->validate([
-            'kode_icd' => 'required|string|max:50|unique:icds,kode_icd',
-            'diagnosis' => 'required|string|max:255',
+            'diagnosis' => 'required|string|max:115',
         ]);
 
-        ICD::create($request->all());
+        ICD::create([
+            'kode_icd' => $request->kode_icd,   // ✅ langsung ambil dari input user
+            'diagnosis' => $request->diagnosis
+        ]);
+
         return redirect()->route('master.icd.index')->with('success', 'Data berhasil ditambahkan.');
     }
 
+    // Form edit
     public function edit($id)
     {
         $row = ICD::findOrFail($id);
         return view('master.icd_edit', compact('row'));
     }
 
+    // Update data
     public function update(Request $request, $id)
     {
         $request->validate([
-            'kode_icd' => 'required|string|max:50|unique:icds,kode_icd,'.$id.',kode_icd',
-            'diagnosis' => 'required|string|max:255',
+            'diagnosis' => 'required|string|max:115',
         ]);
 
         $row = ICD::findOrFail($id);
-        $row->update($request->all());
+        $row->update([
+            'diagnosis' => $request->diagnosis
+        ]);
 
         return redirect()->route('master.icd.index')->with('success', 'Data berhasil diupdate.');
     }
 
+    // Hapus data
     public function destroy($id)
     {
         $row = ICD::findOrFail($id);
         $row->delete();
-        return redirect()->route('master.icd.index')->with('success', 'Data berhasil dihapus.');
+
+        return response()->json(['success' => true]); // ✅ bukan redirect, biar AJAX tidak error
+    }
+
+    // ✅ Tambahan: Update 1 field via AJAX
+    public function updateField(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|string',
+            'field' => 'required|in:diagnosis',
+            'value' => 'required|string|max:150',
+        ]);
+
+        $row = ICD::findOrFail($request->id);
+        $row->{$request->field} = $request->value;
+        $row->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => ucfirst($request->field) . ' berhasil diupdate'
+        ]);
     }
 }

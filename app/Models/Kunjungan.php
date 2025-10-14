@@ -11,7 +11,7 @@ class Kunjungan extends Model
     protected $table = 'rme_master_jenis_kunjungan';
 
     // Primary key
-    //protected $primaryKey = 'id_kunjungan';
+    protected $primaryKey = 'id_kunjungan';
 
     // Kalau primary key bukan integer auto-increment
     public $incrementing = false;
