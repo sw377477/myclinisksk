@@ -10,10 +10,13 @@ class DiagnosaController extends Controller
     // 🔹 Ambil pasien yang berkunjung hari ini
     public function getPasienHariIni()
     {
+        $idpay = session('idpay');
+
         $data = DB::table('rme_entry_kunjungan as a')
             ->join('rme_entry_member as b', 'b.id_member', '=', 'a.id_member')
             ->select('b.no_rm', 'b.nm_member')
             ->whereDate('a.tgl_kunjungan', DB::raw('CURRENT_DATE'))
+            ->when($idpay, fn($q) => $q->where('a.idpay', $idpay))
             ->orderBy('b.nm_member')
             ->distinct()
             ->get();

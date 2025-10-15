@@ -65,6 +65,7 @@
     <div class="tab-container">
         <button class="tab-button active" data-tab="anamnesa">Anamnesa</button>
         <button class="tab-button" data-tab="resep">Pemberian Resep</button>
+        <button class="tab-button" data-tab="riwayat">Riwayat Pasien</button>
     </div>
 
     <!-- TAB ANAMNESA -->
@@ -185,6 +186,29 @@
                 <tbody>
                     <tr><td class="border px-2 py-1">OB001</td><td class="border px-2 py-1">Paracetamol</td><td class="border px-2 py-1">500mg</td><td class="border px-2 py-1">3x sehari</td><td class="border px-2 py-1">-</td></tr>
                     <tr><td class="border px-2 py-1">OB002</td><td class="border px-2 py-1">Amoxicillin</td><td class="border px-2 py-1">250mg</td><td class="border px-2 py-1">2x sehari</td><td class="border px-2 py-1">Sesudah makan</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Riwayat -->
+    <div id="riwayat" class="tab-content">
+        <div class="bg-white p-4 rounded shadow">
+            <h4 class="font-semibold text-gray-700 mb-2">Riwayat Pasien</h4>
+            <input type="text" id="searchResep" class="border px-3 py-1 mb-2 w-1/3" placeholder="Cari obat...">
+
+            <table class="table-auto w-full border border-gray-300 text-sm">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="border px-2 py-1">Nama Pasien</th>
+                        <th class="border px-2 py-1">No RM</th>
+                        <th class="border px-2 py-1">Tgl Kunjungan</th>
+                        <th class="border px-2 py-1">Diagnosa</th>
+                        <th class="border px-2 py-1">Keterangan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
                 </tbody>
             </table>
         </div>

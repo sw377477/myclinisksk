@@ -124,13 +124,17 @@ class DataController extends Controller
             ->join('hrd_pekerjaan AS b', function ($join) {
                 $join->on('b.kode', '=', 'a.kerja')
                     ->on('b.iddata', '=', 'a.iddata');
-            })
+                    })
+            ->join('hrd_status_karyawan AS c', function ($join) {
+                $join->on('c.kodestatus', '=', 'a.status_karyawan');
+                    })
             ->select(
                 'a.nik',
                 'a.nama',
                 'a.lp',
                 DB::raw("a.lahir_tempat || ', ' || a.lahir_tgl AS ttl"),
                 'b.ket',
+                'c.status',
                 'a.kk',
                 'a.ktp',
                 DB::raw('a.no_bpjs_kesehatan AS bpjs')
@@ -156,13 +160,17 @@ class DataController extends Controller
             ->join('hrd_pekerjaan AS b', function ($join) {
                 $join->on('b.kode', '=', 'a.kerja')
                     ->on('b.iddata', '=', 'a.iddata');
-            })
+                    })
+            ->join('hrd_status_karyawan AS c', function ($join) {
+                $join->on('c.kodestatus', '=', 'a.status_karyawan');
+                    })
             ->select(
                 'a.nik',
                 'a.nama',
                 'a.lp',
                 DB::raw("a.lahir_tempat || ', ' || a.lahir_tgl AS ttl"),
                 'b.ket',
+                'c.status',
                 'a.kk',
                 'a.ktp',
                 DB::raw('a.no_bpjs_kesehatan AS bpjs')
