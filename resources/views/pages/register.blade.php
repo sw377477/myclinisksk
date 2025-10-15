@@ -186,23 +186,24 @@
         <h2 class="font-bold text-m mb-2">Entry Pendaftaran</h2>
         
         <div class="flex items-center space-x-4">
-            <select name="type_member" class="w-60 border rounded p-1">
+            <select id="type_member" name="type_member" class="w-60 border rounded p-1">
+                <option value="">-- Pilih Jenis --</option>
                 <option value="INTERNAL">INTERNAL</option>
                 <option value="EXTERNAL">EXTERNAL</option>
             </select>
 
             <div class="flex items-center space-x-2">
-            <!--<span>Nomor RM:</span>-->
-            <label class="w-30">Nomor RM :</label>
-            <input type="text" value="KSK.RM.20250919152528" class="border p-1 w-80 text-center" readonly>
+                <label class="w-30">Nomor RM :</label>
+                <input id="nomorRm" type="text" class="border p-1 w-60 text-center" readonly>
+                <button id="btnGenerate" class="border px-2 bg-green-200 rounded">⚙</button>
             </div>
 
             
         </div>
         <div class="flex items-center space-x-2">
-                <label><input type="radio" name="karyawan" value="1" checked> Karyawan</label>
-                <label><input type="radio" name="karyawan" value="0"> Non Karyawan</label>
-            </div>
+            <label><input type="radio" name="karyawan" id="radio_kary" value="1" disabled> Karyawan</label>
+            <label><input type="radio" name="karyawan" id="radio_nonKary" value="0" disabled> Non Karyawan</label>
+        </div>
 
         <h2><div class="border-t mt-4 pt-2 text-blue-600 text-sm italic">
             
@@ -213,8 +214,8 @@
     
         <div class="flex items-center space-x-1">
             <label class="w-32">Nama Lengkap :</label>
-            <input type="text" class="border p-1 flex-1 h-7 rounded" placeholder="ctrl + F">
-            <button class="bg-gray-200 px-2 rounded">🔍</button>
+            <input id="namaLengkap" type="text" class="border px-1 flex-1 h-7 rounded" readonly>
+        <button id="btnCari" class="bg-gray-200 px-2 rounded">🔍</button>
         </div>
 
         <!-- Contoh beberapa field lain -->
@@ -226,68 +227,134 @@
             </div> 
             <div class="flex items-center space-x-2">
                 <label class="w-32">ID Member :</label>
-                <input type="text" class="border flex-1 h-7 px-1 rounded" readonly value="21">
+                <input id="id_member_auto" type="text" class="border flex-1 h-7 px-1 rounded" readonly>
             </div>
             <div class="flex items-center space-x-2">
                 <label class="w-32">Nomor BPJS :</label>
-                <input type="text" class="border flex-1 h-7 px-1 rounded">
+                <input id="bpjs" type="text" class="border flex-1 h-7 px-1 rounded">
             </div>
             <div class="flex items-center space-x-2">
                 <label class="w-32">Nik Karyawan :</label>
-                <input type="text" class="border flex-1 h-7 px-1 rounded" readonly value="21">
+                <input id="nik" type="text" class="border flex-1 h-7 px-1 rounded" readonly>
             </div>
             <div class="flex items-center space-x-2">
                 <label class="w-32">No KTP/SIM :</label>
-                <input type="text" class="border flex-1 h-7 px-1 rounded">
+                <input id="ktp" type="text" class="border flex-1 h-7 px-1 rounded">
             </div>
             <div class="flex items-center space-x-2">
+                <label class="w-32">No. KK :</label>
+                <input id="kk" type="text" class="border flex-1 h-7 px-1 rounded">
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <label class="w-32">Tgl Lahir :</label>
+                <input id="tgllahir" type="date" class="border flex-1 h-7 px-1 w-30 rounded">
+                <input id="umur" type="text" class="border flex-1 h-7 p-1 w-10 rounded" readonly>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <label class="w-32">Agama :</label>
+                <input id="agama" type="text" class="border flex-1 h-7 px-1 rounded">
+            </div>
+            <div class="flex items-center space-x-2">
+                <label class="w-32">Tempat Lahir :</label>
+                <input id="tmplahir" type="text" class="border flex-1 h-7 px-1 rounded">
+            </div>            
+                      
+            <div class="flex items-center space-x-2">
+                <label class="w-32">Pendidikan :</label>
+                <input id="pendidikan" type="text" class="border flex-1 h-7 px-1 rounded">
+            </div>
+            <div class="flex items-center space-x-2">
+                <label class="w-32">Gender :</label>
+                <select id="gender" name="gender" class="border h-7 p-1 w-30 rounded">
+                    <option value="">--Pilih--</option>                    
+                    <option value="L">Laki-laki</option>
+                    <option value="P">Perempuan</option>
+                </select>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <label class="w-32">Pekerjaan :</label>
+                <input id="pekerjaan" type="text" class="border flex-1 h-7 px-1 rounded">
+            </div>
+            
+            <div class="flex items-center space-x-2">
                 <label class="w-32">Status :</label>
-                <select name="status" class="border h-7 p-1 w-30 rounded">
+                <select id="status" name="status" class="border h-7 p-1 w-30 rounded">
+                <option >--Pilih--</option>
                 <option value="Kawin">Kawin</option>
                 <option value="Belum Kawin">Belum Kawin</option>
                 <option value="Cerai">Cerai</option>
             </select>
             </div>
-            
-            
+             
             <div class="flex items-center space-x-2">
-                <label class="w-32">Tgl Lahir :</label>
-                <input type="date" class="border h-7 p-1 w-30 rounded" value="{{ now()->format('Y-m-d') }}">
-                <input type="text" class="border flex-1 h-7 p-1 w-10 rounded" value="98" readonly>
+                <label class="w-32">Departemen :</label>
+                <input id="departemen" type="text" class="border flex-1 h-7 px-1 rounded" readonly>
             </div>
             <div class="flex items-center space-x-2">
                 <label class="w-32">Gol Darah :</label>
-                <select name="goldarah" class="border h-7 p-1 w-20 rounded">
+                <select id="goldarah" name="goldarah" class="text-sm border h-7 p-1 w-20 rounded">
+                <option >--Pilih--</option>
                 <option value="O">O</option>
                 <option value="A">A</option>
                 <option value="B">B</option>
                 <option value="AB">AB</option>
             </select>
             </div>
-            <div class="flex items-center space-x-2">
-                <label class="w-32">Tempat Lahir :</label>
-                <input type="text" class="border flex-1 h-7 px-1 rounded">
-            </div>            
-            <div class="flex items-center space-x-2">
-                <label class="w-32">No. Telp :</label>
-                <input type="text" class="border flex-1 h-7 px-1 rounded">
-            </div>           
             
             <div class="flex items-center space-x-2">
-                <label class="w-32">Gender :</label>
-                <select name="gender" class="border h-7 p-1 w-30 rounded">                    
-                    <option value="L">Laki-laki</option>
-                    <option value="P">Perempuan</option>
-                </select>
+                <label class="w-32">Jabatan :</label>
+                <input type="text" id="jabatan" class="border flex-1 h-7 px-1 rounded" readonly>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <label class="w-32">No. Telp :</label>
+                <input id="notelp" type="text" class="border flex-1 h-7 px-1 rounded">
             </div>
             <div class="flex items-center space-x-2">
-                <label class="w-32">No. KK :</label>
-                <input type="text" class="border flex-1 h-7 px-1 rounded">
+                <label class="w-32">Divisi :</label>
+                <input id="divisi" type="text" class="border flex-1 h-7 px-1 rounded" readonly>
             </div>
 
             <!-- Tambahkan field lain sesuai kebutuhan -->
         </div>
-</div>
+    </div>
+
+    <!-- ==================== MODAL PILIH NAMA ==================== -->
+    <!-- Popup Pilih Karyawan -->
+    <div id="popupKaryawan" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
+    <div class="bg-white rounded-xl shadow-lg p-4 w-1/1">
+        <h2 class="text-lg font-semibold mb-3">Pilih Karyawan</h2>
+
+        <!-- Input pencarian -->
+        <input type="text" id="searchKaryawan" placeholder="Cari nama atau KTP..."
+        class="w-full mb-3 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
+
+        <!-- Tabel daftar karyawan -->
+        <div class="max-h-80 overflow-y-auto">
+        <table class="w-full border border-gray-300" id="tableKaryawan">
+            <thead class="bg-gray-200 sticky top-0">
+            <tr>
+                <th class="border p-3 text-left">NIK</th>
+                <th class="border p-3 text-left">Nama</th>
+                <th class="border p-3 text-center">L/P</th>
+                <th class="border p-3 text-left">No KTP</th>
+                <th class="border p-3 text-left">Tempat Lahir</th>
+                <th class="border p-3 text-left">Tgl Lahir</th>
+                <th class="border p-3 text-left">No BPJSKES</th>
+                <th class="border p-3 text-center">Aksi</th>
+            </tr>
+            </thead>
+            <tbody id="tbodyKaryawan"></tbody>
+        </table>
+        </div>
+
+        <button onclick="tutupPopupKaryawan()" class="mt-4 px-4 py-2 bg-red-500 text-white rounded">Tutup</button>
+    </div>
+    </div>
+
 
         <!-- Optional Contact -->
         <div class="border-t mt-4 pt-2 text-blue-600 text-sm italic">
@@ -302,10 +369,9 @@
         </div>
 
         <!-- Buttons -->
-        <div class="flex justify-end space-x-2 mt-4">
-            <button class="bg-orange-500 text-white px-4 py-1 rounded shadow">EDIT</button>
-            <button class="bg-orange-500 text-white px-4 py-1 rounded shadow">SIMPAN</button>
-            <button class="bg-orange-500 text-white px-4 py-1 rounded shadow">CLEAR</button>
+        <div class="flex justify-end space-x-2 mt-4">            
+            <button id="btnSimpan" class="bg-orange-500 text-white px-4 py-1 rounded shadow">SIMPAN</button>
+            <button id="btnClear" class="bg-orange-500 text-white px-4 py-1 rounded shadow">CLEAR</button>
         </div>
     </div>
 
@@ -420,7 +486,7 @@
         </div>
 
         <!-- Tabel Data -->
-        <div class="overflow-y-auto max-h-[552px]" x-show="!loading">
+        <div class="overflow-y-auto max-h-[449px]" x-show="!loading">
             <table class="min-w-full border border-gray-300-collapse rounded-lg">
                 <thead class="bg-gray-200 sticky top-0 z-10">
                     <tr>
@@ -461,7 +527,7 @@
 
     <!-- ===================== TAB PENDAFTARAN ===================== -->
 <div x-show="exploreTab === 'pendaftaran'" x-transition>
-    <p>📝 Data Pendaftaran akan ditampilkan di sini.</p>
+    <!--<p>📝 Data Pendaftaran akan ditampilkan di sini.</p>-->
 
     <div x-show="exploreTab === 'pendaftaran'"
          x-data="exploreData('pendaftaran')"
@@ -481,7 +547,7 @@
         <!-- Master-Detail Layout -->
         <div class="flex space-x-4">
             <!-- Master: Tabel Kiri -->
-            <div class="w-3/5 overflow-y-auto max-h-[530px] border rounded-lg shadow-sm">
+            <div class="w-3/5 overflow-y-auto max-h-[467px] border rounded-lg shadow-sm">
                 <table class="min-w-full border border-gray-300 table-auto">
                     <thead class="bg-gray-200 sticky top-0 z-10">
                         <tr>
@@ -504,7 +570,7 @@
             </div>
 
             <!-- Detail: Tabel Kanan -->
-            <div class="w-2/5 overflow-y-auto max-h-[530px] border rounded-lg shadow-sm">
+            <div class="w-2/5 overflow-y-auto max-h-[467px] border rounded-lg shadow-sm">
                 
                 <template x-if="loadingDetail">
                     <div class="p-4 text-blue-500">🔄 Memuat detail...</div>
@@ -764,5 +830,265 @@ $(document).ready(function() {
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<script>
+    // Ambil nilai idpay langsung dari session PHP (dikirim ke JS)
+    const sessionIdpay = "{{ session('idpay') ?? 'CLXXX' }}";
+
+    function pad(n) {
+        return n.toString().padStart(2, '0');
+    }
+
+    function generateNomorRM(idpay) {
+        // Ambil 3 huruf terakhir
+        const prefix = idpay.slice(-3).toUpperCase();
+
+        // Buat timestamp: YYYYMMDDHHMMSS
+        const d = new Date();
+        const timestamp =
+            d.getFullYear().toString() +
+            pad(d.getMonth() + 1) +
+            pad(d.getDate()) +
+            pad(d.getHours()) +
+            pad(d.getMinutes()) +
+            pad(d.getSeconds());
+
+        return `${prefix}.RM.${timestamp}`;
+    }
+
+    // Saat tombol diklik
+    document.getElementById('btnGenerate').addEventListener('click', () => {
+        const nomor = generateNomorRM(sessionIdpay);
+        document.getElementById('nomorRm').value = nomor;
+    });
+
+    // Auto generate saat halaman dimuat
+    document.getElementById('nomorRm').value = generateNomorRM(sessionIdpay);
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  // ======== ELEMENTS ========
+  const combo = document.getElementById('type_member');
+  const radioKary = document.getElementById('radio_kary');
+  const radioNonKary = document.getElementById('radio_nonKary');
+
+  // ======== KONDISI AWAL ========
+  radioKary.disabled = true;
+  radioNonKary.disabled = true;
+
+  // ======== LOGIKA INTERNAL / EXTERNAL ========
+  combo.addEventListener('change', function () {
+    const selectedValue = this.value.trim().toUpperCase();
+
+    if (selectedValue === 'INTERNAL') {
+      radioKary.checked = true;
+      radioKary.disabled = false;
+      radioNonKary.disabled = false;
+    } else if (selectedValue === 'EXTERNAL') {
+      radioKary.checked = false;
+      radioNonKary.checked = false;
+      radioKary.disabled = true;
+      radioNonKary.disabled = true;
+    } else {
+      radioKary.checked = false;
+      radioNonKary.checked = false;
+      radioKary.disabled = true;
+      radioNonKary.disabled = true;
+    }
+  });
+
+  // ======== AMBIL DATA KARYAWAN ========
+  let semuaKaryawan = [];
+
+  async function ambilData() {
+    const checked = document.querySelector('input[name="karyawan"]:checked');
+    if (!checked) {
+      alert('Pilih salah satu: Karyawan atau Non Karyawan');
+      return;
+    }
+
+    const type = checked.value === "1" ? "karyawan" : "nonkaryawan";
+
+    try {
+      const response = await fetch(`/get-data?type=${type}`);
+      if (!response.ok) throw new Error("HTTP " + response.status);
+
+      const data = await response.json();
+      if (!Array.isArray(data) || data.length === 0) {
+        alert("Tidak ada data ditemukan!");
+        return;
+      }
+
+      semuaKaryawan = data;
+      tampilkanKaryawan(data);
+      document.getElementById('popupKaryawan').classList.remove('hidden');
+    } catch (error) {
+      console.error(error);
+      alert("Gagal ambil data!");
+    }
+  }
+
+  function tampilkanKaryawan(data) {
+    const tbody = document.getElementById('tbodyKaryawan');
+    tbody.innerHTML = '';
+
+    data.forEach((row, index) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="border p-1">${row.nik ?? '-'}</td>
+        <td class="border p-1">${row.nama ?? '(Tanpa nama)'}</td>
+        <td class="border p-1 text-center">${row.lp ?? '-'}</td>
+        <td class="border p-1">${row.ktp ?? '-'}</td>
+        <td class="border p-1">${row.tmplahir ?? '-'}</td>
+        <td class="border p-1">${row.tgllahir ?? '-'}</td>
+        <td class="border p-1">${row.bpjskes ?? '-'}</td>
+        <td class="border p-1 text-center">
+          <button class="btnPilih bg-blue-500 text-white px-3 py-1 rounded" data-index="${index}">
+            Pilih
+          </button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+
+    // Tambahkan event listener aman
+    tbody.querySelectorAll('.btnPilih').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const index = e.target.getAttribute('data-index');
+        pilihKaryawan(semuaKaryawan[index]);
+      });
+    });
+  }
+
+  // ======== PILIH KARYAWAN ========
+  async function ambilIdMember() {
+    try {
+      const res = await fetch('/get-id-member');
+      const json = await res.json();
+      if (json && json.next_id) {
+        document.getElementById('id_member_auto').value = json.next_id;
+      } else {
+        document.getElementById('id_member_auto').value = '';
+      }
+    } catch (err) {
+      console.error('Gagal ambil ID Member:', err);
+    }
+  }
+
+  window.pilihKaryawan = function (item) {
+    document.getElementById('namaLengkap').value = item.nama ?? '';
+    document.getElementById('bpjs').value = item.bpjskes ?? '';
+    document.getElementById('nik').value = item.nik ?? '';
+    document.getElementById('ktp').value = item.ktp ?? '';
+    document.getElementById('kk').value = item.kk ?? '';
+    document.getElementById('tgllahir').value = item.tgllahir ?? '';
+    document.getElementById('agama').value = item.agama ?? '';
+    document.getElementById('tmplahir').value = item.tmplahir ?? '';
+    document.getElementById('pendidikan').value = item.pend ?? '';
+    document.getElementById('gender').value = item.lp ?? '';
+    document.getElementById('jabatan').value = item.jabatan ?? '';
+    document.getElementById('departemen').value = item.departemen ?? '';
+    document.getElementById('divisi').value = item.divisi ?? '';
+
+    // Hitung umur otomatis
+    if (item.tgllahir) {
+      const tglLahir = new Date(item.tgllahir);
+      if (!isNaN(tglLahir)) {
+        const today = new Date();
+        let umur = today.getFullYear() - tglLahir.getFullYear();
+        const m = today.getMonth() - tglLahir.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < tglLahir.getDate())) umur--;
+        document.getElementById('umur').value = umur >= 0 ? umur : 0;
+      } else {
+        document.getElementById('umur').value = '';
+      }
+    } else {
+      document.getElementById('umur').value = '';
+    }
+
+    document.getElementById('popupKaryawan').classList.add('hidden');
+
+    // Ambil ID Member
+    ambilIdMember();
+  };
+
+  window.tutupPopupKaryawan = function () {
+    document.getElementById('popupKaryawan').classList.add('hidden');
+  };
+
+  document.getElementById('btnCari').addEventListener('click', ambilData);
+
+  document.getElementById('searchKaryawan').addEventListener('input', function () {
+    const keyword = this.value.toLowerCase();
+    const filtered = semuaKaryawan.filter(row =>
+      (row.nama && row.nama.toLowerCase().includes(keyword)) ||
+      (row.ktp && row.ktp.toLowerCase().includes(keyword))
+    );
+    tampilkanKaryawan(filtered);
+  });
+
+  // ======== HITUNG UMUR JIKA TGL LAHIR DIRUBAH MANUAL ========
+  const tglLahirInput = document.getElementById('tgllahir');
+  const umurInput = document.getElementById('umur');
+
+  tglLahirInput.addEventListener('change', function () {
+    const tglLahir = new Date(this.value);
+    if (isNaN(tglLahir)) {
+      umurInput.value = '';
+      return;
+    }
+    const today = new Date();
+    let umur = today.getFullYear() - tglLahir.getFullYear();
+    const m = today.getMonth() - tglLahir.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < tglLahir.getDate())) umur--;
+    umurInput.value = umur >= 0 ? umur : 0;
+  });
+
+  // ======== SIMPAN DATA ========
+  document.getElementById('btnSimpan').addEventListener('click', async function () {
+    const payload = {
+      id_member: document.getElementById('id_member_auto').value.trim(),
+      nm_member: document.getElementById('namaLengkap').value.trim(),
+      nik_ktp: document.getElementById('ktp').value.trim(),
+      nik_karyawan: document.getElementById('nik').value.trim(),
+      tempat_lahir: document.getElementById('tmplahir').value.trim(),
+      tgl_lahir: document.getElementById('tgllahir').value || null,
+      gender: document.getElementById('gender').value.trim(),
+      agama: document.getElementById('agama').value.trim(),
+      pendidikan: document.getElementById('pendidikan').value.trim(),
+      pekerjaan: document.getElementById('pekerjaan').value.trim(),
+      status: document.getElementById('status').value.trim(),
+      gol_darah: document.getElementById('goldarah').value.trim(),
+      no_rm: document.getElementById('nomorRm').value.trim(),
+      jabatan: document.getElementById('jabatan').value.trim(),
+      departemen: document.getElementById('departemen').value.trim(),
+      divisi: document.getElementById('divisi').value.trim(),
+      jenis: document.getElementById('type_member').value.trim(),
+      idpay: "{{ session('idpay') ?? 'CLXXX' }}"
+    };
+
+    try {
+      const res = await fetch('/simpan-member', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await res.json();
+      if (result.success) {
+        alert(result.message);
+      } else {
+        alert('Gagal simpan: ' + result.message);
+      }
+    } catch (err) {
+      alert('Error simpan data: ' + err.message);
+    }
+  });
+});
+</script>
+
 
 @endsection

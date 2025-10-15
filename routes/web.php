@@ -17,6 +17,11 @@ use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\DataController;
 use App\Http\Controllers\DiagnosaController;
+use App\Http\Controllers\PendaftaranController;
+
+Route::post('/simpan-member', [PendaftaranController::class, 'simpanMember']);
+Route::get('/get-id-member', [PendaftaranController::class, 'getIdMember']);
+Route::get('/get-data', [PendaftaranController::class, 'getData']);
 
 Route::post('/simpan-anamnesa', [DiagnosaController::class, 'simpanAnamnesa']);
 
