@@ -1,5 +1,14 @@
 @extends('layouts.app')
 
+@section('styles')
+<style>
+/* Geser dropdown select2 sedikit ke kiri */
+.select2-container .select2-dropdown {
+    margin-left: -5px; /* ubah nilai -4px ke -2px, -6px sesuai selera */
+}
+</style>
+@endsection
+
 @section('content')
 <!-- Wrapper utama -->
 <div class="h-[680px] flex flex-col p-5 bg-white rounded-2xl shadow-xl">
@@ -337,9 +346,9 @@
       <div class="w-1/2 bg-gray-50 p-4 rounded-lg shadow flex flex-col">
          <div class="flex justify-between items-center mb-2">
             <span class="font-bold">Data Pendaftaran</span>
-            <select class="border rounded p-1">
-               <option value="today">Hari Ini</option>
-               <option value="all">Semua Data</option>
+            <select id="filterPendaftaran" class="border rounded p-1">
+                <option value="today">🗓️ Hari Ini</option>
+                <option value="monthly">🗓️ Bulan Ini</option>
             </select>
          </div>
          <div class="overflow-x-auto flex-1">
@@ -354,16 +363,8 @@
                      <th class="px-2 py-1 border">NOMOR</th>
                   </tr>
                </thead>
-               <tbody>
-                  <!-- Data akan di-loop di sini -->
-                  <tr class="bg-white hover:bg-gray-100">
-                     <td class="px-2 py-1 border text-center">1</td>
-                     <td class="px-2 py-1 border">Nama Contoh</td>
-                     <td class="px-2 py-1 border">1234567890</td>
-                     <td class="px-2 py-1 border">25</td>
-                     <td class="px-2 py-1 border">L</td>
-                     <td class="px-2 py-1 border">KSK.RM.20250919152528</td>
-                  </tr>
+               <tbody id="pendaftaran-body">
+                  <tr><td colspan="6" class="text-center text-gray-500 py-2">🔁 Memuat data...</td></tr>
                   <!-- Tambahkan loop entries dari controller -->
                </tbody>
             </table>
@@ -473,70 +474,82 @@
       </div>
    </div>
    <!-- ===================== TAB PENDAFTARAN ===================== -->
-   <div x-show="exploreTab === 'pendaftaran'" x-transition>
-      <!--<p>📝 Data Pendaftaran akan ditampilkan di sini.</p>-->
-      <div x-show="exploreTab === 'pendaftaran'"
-         x-data="exploreData('pendaftaran')"
-         x-init="fetchData()"
-         class="space-y-4">
-         <!-- Combo / Lookup Jenis -->
-         <div class="flex items-center space-x-2">
+    <div x-show="exploreTab === 'pendaftaran'" x-transition>
+        <div 
+        x-data="exploreData('pendaftaran')"
+        x-init="fetchData()"
+        class="space-y-4">
+        <!-- Combo / Lookup Jenis -->
+        <div class="flex items-center space-x-2">
             <label class="font-medium">Jenis:</label>
-            <select x-model="jenis" @change="fetchHeader()"
-               class="border rounded px-2 py-1">
-               <option value="INTERNAL">INTERNAL</option>
-               <option value="EXTERNAL">EXTERNAL</option>
+            <select 
+                x-model="jenis" 
+                @change="fetchHeader()"
+                class="border rounded px-2 py-1"
+            >
+                <option value="INTERNAL">INTERNAL</option>
+                <option value="EXTERNAL">EXTERNAL</option>
             </select>
-         </div>
-         <!-- Master-Detail Layout -->
-         <div class="flex space-x-4">
+        </div>
+
+        <!-- Master-Detail Layout -->
+        <div class="flex space-x-4">
             <!-- Master: Tabel Kiri -->
-            <div class="w-3/5 overflow-y-auto max-h-[530px] border rounded-lg shadow-sm">
-               <table class="min-w-full border border-gray-300 table-auto">
-                  <thead class="bg-gray-200 sticky top-0 z-10">
-                     <tr>
-                        <th class="px-4 py-1 border text-left">Nama</th>
-                        <th class="px-4 py-1 border text-left">No RM</th>
-                        <th class="px-4 py-1 border text-left">KTP</th>
-                     </tr>
-                  </thead>
-                  <tbody>
-                     <template x-for="(row, index) in headerData" :key="index">
-                        <tr :class="selectedNoRM === row.nomor ? 'bg-blue-100' : (index % 2 === 0 ? 'bg-white' : 'bg-gray-50')"
-                           @click="selectRow(row.nomor)" class="cursor-pointer hover:bg-blue-50">
-                           <td class="px-2 py-1 border whitespace-nowrap" x-text="row.nama"></td>
-                           <td class="px-2 py-1 border whitespace-nowrap" x-text="row.nomor"></td>
-                           <td class="px-2 py-1 border whitespace-nowrap" x-text="row.ktp"></td>
+            <div class="w-3/5 overflow-y-auto max-h-[462px] border rounded-lg shadow-sm">
+                <table class="min-w-full border border-gray-300 table-auto">
+                    <thead class="bg-gray-200 sticky top-0 z-10">
+                        <tr>
+                            <th class="px-4 py-1 border text-left">Nama</th>
+                            <th class="px-4 py-1 border text-left">No RM</th>
+                            <th class="px-4 py-1 border text-left">KTP</th>
                         </tr>
-                     </template>
-                  </tbody>
-               </table>
+                    </thead>
+                    <tbody>
+                        <template x-for="(row, index) in headerData" :key="row.nomor">
+                            <tr 
+                                :class="selectedNoRM === row.nomor ? 'bg-blue-100' : (index % 2 === 0 ? 'bg-white' : 'bg-gray-50')"
+                                @click="selectRow(row.nomor)" 
+                                class="cursor-pointer hover:bg-blue-50"
+                            >
+                                <td class="px-2 py-1 border whitespace-nowrap" x-text="row.nama"></td>
+                                <td class="px-2 py-1 border whitespace-nowrap" x-text="row.nomor"></td>
+                                <td class="px-2 py-1 border whitespace-nowrap" x-text="row.ktp"></td>
+                            </tr>
+                        </template>
+                        <template x-if="headerData.length === 0">
+                            <tr>
+                                <td class="px-2 py-1 border text-center" colspan="3">Tidak ada data</td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
             </div>
 
             <!-- Detail: Tabel Kanan -->
-            <div class="w-2/5 overflow-y-auto max-h-[530px] border rounded-lg shadow-sm">
-               <template x-if="loadingDetail">
-                  <div class="p-4 text-blue-500">🔄 Memuat detail...</div>
-               </template>
-               <template x-if="!loadingDetail && Object.keys(detailData).length > 0">
-                  <table class="min-w-full border border-gray-300 table-auto text-sm">
-                     <tbody>
-                        <template x-for="(value, key) in detailData" :key="key">
-                           <tr class="border-b">
-                              <td class="px-1 py-0.5 font-medium bg-gray-100 w-1/3" x-text="formatKey(key)"></td>
-                              <td class="px-1 py-0.5" x-text="value"></td>
-                           </tr>
-                        </template>
-                     </tbody>
-                  </table>
-               </template>
-               <template x-if="!loadingDetail && Object.keys(detailData).length === 0" >
-                  <div class="p-4 text-gray-500">Pilih member untuk melihat detail</div>
-               </template>
+            <div class="w-2/5 overflow-y-auto max-h-[462px] border rounded-lg shadow-sm">
+                <template x-if="loadingDetail">
+                    <div class="p-4 text-blue-500">🔄 Memuat detail...</div>
+                </template>
+                <template x-if="!loadingDetail && Object.keys(detailData).length > 0">
+                    <table class="min-w-full border border-gray-300 table-auto text-sm">
+                        <tbody>
+                            <template x-for="(value, key) in detailData" :key="key">
+                                <tr class="border-b">
+                                    <td class="px-1 py-0.5 font-medium bg-gray-100 w-1/3" x-text="formatKey(key)"></td>
+                                    <td class="px-1 py-0.5" x-text="value"></td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </template>
+                <template x-if="!loadingDetail && Object.keys(detailData).length === 0">
+                    <div class="p-4 text-gray-500">Pilih member untuk melihat detail</div>
+                </template>
             </div>
-         </div>
-      </div>
-   </div>
+        </div>
+    </div>
+</div>
+
 </div>
 
 @endsection
@@ -619,49 +632,61 @@
    }
 </script>
 <script>
-   function exploreData(tab) {
-       return {
-           headerData: [],
-           detailData: {},
-           jenis: 'INTERNAL',
-           selectedNoRM: null,
-           loadingDetail: false,
-   
-           fetchHeader() {
-               fetch(`/api/pendaftaran-header?jenis=${this.jenis}`)
-                   .then(res => res.json())
-                   .then(data => {
-                       // trim semua no_rm dari header agar klik bisa match
-                       this.headerData = data.map(row => ({
-                           ...row,
-                           nomor: row.nomor.trim()
-                       }));
-                       this.detailData = {};
-                       this.selectedNoRM = null;
-                   });
-           },
-   
-           selectRow(no_rm) {
-               this.selectedNoRM = no_rm.trim();
-               this.loadingDetail = true;
-   
-               fetch(`/api/pendaftaran-detail?no_rm=${this.selectedNoRM}`)
-                   .then(res => res.json())
-                   .then(data => {
-                       this.detailData = data || {};
-                       this.loadingDetail = false;
-                   });
-           },
-   
-           fetchData() {
-               this.fetchHeader();
-           },
-   
-           formatKey(key) {
-               return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-           }
-       }
-   }
+function exploreData(tab) {
+    return {
+        headerData: [],
+        detailData: {},
+        jenis: 'INTERNAL',
+        selectedNoRM: null,
+        loadingDetail: false,
+
+        fetchHeader() {
+            fetch(`/api/pendaftaran-header?jenis=${this.jenis}`)
+                .then(res => res.json())
+                .then(data => {
+                    console.log("Header data:", data); // debug
+                    // Aman jika nomor null
+                    this.headerData = data.map(row => ({
+                        ...row,
+                        nomor: row.nomor ? row.nomor.trim() : ''
+                    }));
+                    this.detailData = {};
+                    this.selectedNoRM = null;
+                })
+                .catch(err => {
+                    console.error("Error fetchHeader:", err);
+                    this.headerData = [];
+                });
+        },
+
+        selectRow(no_rm) {
+            if (!no_rm) return; // jangan fetch jika kosong
+            this.selectedNoRM = no_rm.trim();
+            this.loadingDetail = true;
+
+            fetch(`/api/pendaftaran-detail?no_rm=${this.selectedNoRM}`)
+                .then(res => res.json())
+                .then(data => {
+                    console.log("Detail data:", data); // debug
+                    this.detailData = data || {};
+                    this.loadingDetail = false;
+                })
+                .catch(err => {
+                    console.error("Error fetchDetail:", err);
+                    this.detailData = {};
+                    this.loadingDetail = false;
+                });
+        },
+
+        fetchData() {
+            this.fetchHeader();
+        },
+
+        formatKey(key) {
+            return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+    }
+}
 </script>
 <!-- jQuery (Select2 requires jQuery) -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -677,6 +702,7 @@
            placeholder: "🔍 Cari member...",
            allowClear: true,
            width: '90%',
+           dropdownParent: $('#id_member').parent(),
            // Customize how each option appears in the dropdown (open state)
            templateResult: function (data) {
                if (!data.id) return data.text; // placeholder
@@ -882,8 +908,11 @@
        // Tambahkan event listener aman
        tbody.querySelectorAll('.btnPilih').forEach(btn => {
          btn.addEventListener('click', e => {
-           const index = e.target.getAttribute('data-index');
-           pilihKaryawan(semuaKaryawan[index]);
+           //const index = e.target.getAttribute('data-index');
+           const rowIndex = e.target.closest('button').dataset.index;
+            const item = data[rowIndex];
+            if (item) pilihKaryawan(item);
+           //pilihKaryawan(semuaKaryawan[index]);
          });
        });
      }
@@ -972,51 +1001,161 @@
        umurInput.value = umur >= 0 ? umur : 0;
      });
    
-     // ======== SIMPAN DATA ========
-     document.getElementById('btnSimpan').addEventListener('click', async function () {
-       const payload = {
-         id_member: document.getElementById('id_member_auto').value.trim(),
-         nm_member: document.getElementById('namaLengkap').value.trim(),
-         nik_ktp: document.getElementById('ktp').value.trim(),
-         nik_karyawan: document.getElementById('nik').value.trim(),
-         tempat_lahir: document.getElementById('tmplahir').value.trim(),
-         tgl_lahir: document.getElementById('tgllahir').value || null,
-         gender: document.getElementById('gender').value.trim(),
-         agama: document.getElementById('agama').value.trim(),
-         pendidikan: document.getElementById('pendidikan').value.trim(),
-         pekerjaan: document.getElementById('pekerjaan').value.trim(),
-         status: document.getElementById('status').value.trim(),
-         gol_darah: document.getElementById('goldarah').value.trim(),
-         no_rm: document.getElementById('nomorRm').value.trim(),
-         jabatan: document.getElementById('jabatan').value.trim(),
-         departemen: document.getElementById('departemen').value.trim(),
-         divisi: document.getElementById('divisi').value.trim(),
-         jenis: document.getElementById('type_member').value.trim(),
-         idpay: "{{ session('idpay') ?? 'CLXXX' }}"
-       };
-   
-       try {
-         const res = await fetch('/simpan-member', {
-           method: 'POST',
-           headers: {
-             'Content-Type': 'application/json',
-             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-           },
-           body: JSON.stringify(payload)
-         });
-   
-         const result = await res.json();
-         if (result.success) {
-           alert(result.message);
-         } else {
-           alert('Gagal simpan: ' + result.message);
-         }
-       } catch (err) {
-         alert('Error simpan data: ' + err.message);
-       }
-     });
-   });
+     // ======== FUNSI RESET FORM ========
+    function resetForm(newIdMember = null) {
+        document.getElementById('id_member_auto').value = newIdMember || '';
+        document.getElementById('namaLengkap').value = '';
+        document.getElementById('ktp').value = '';
+        document.getElementById('nik').value = '';
+        document.getElementById('tmplahir').value = '';
+        document.getElementById('tgllahir').value = '';
+        document.getElementById('umur').value = '';
+        document.getElementById('gender').value = '';
+        document.getElementById('agama').value = '';
+        document.getElementById('pendidikan').value = '';
+        document.getElementById('pekerjaan').value = '';
+        document.getElementById('status').value = '--Pilih--';
+        document.getElementById('goldarah').value = '--Pilih--';
+        document.getElementById('nomorRm').value = '';
+        document.getElementById('bpjs').value = '';
+        document.getElementById('jabatan').value = '';
+        document.getElementById('departemen').value = '';
+        document.getElementById('divisi').value = '';
+        document.getElementById('type_member').value = 'INTERNAL'; // default
+    }
+
+    // ======== SIMPAN DATA ========
+    document.getElementById('btnSimpan').addEventListener('click', async function () {
+        const idMember = document.getElementById('id_member_auto').value.trim();
+        const nama = document.getElementById('namaLengkap').value.trim();
+        const nikKtp = document.getElementById('ktp').value.trim();
+        const noRm = document.getElementById('nomorRm').value.trim();
+
+        // ======== VALIDASI FRONT-END ========
+        if (!nama || !nikKtp || !noRm) {
+            alert('⚠️ Nama, NIK/KTP, dan No RM tidak boleh kosong atau hanya berisi spasi.');
+            return;
+        }
+        
+        const payload = {
+            id_member: idMember,
+            nm_member: nama,
+            nik_ktp: nikKtp,
+            nik_karyawan: document.getElementById('nik').value.trim(),
+            tempat_lahir: document.getElementById('tmplahir').value.trim(),
+            tgl_lahir: document.getElementById('tgllahir').value || null,
+            gender: document.getElementById('gender').value.trim(),
+            agama: document.getElementById('agama').value.trim(),
+            pendidikan: document.getElementById('pendidikan').value.trim(),
+            pekerjaan: document.getElementById('pekerjaan').value.trim(),
+            status: document.getElementById('status').value.trim(),
+            gol_darah: document.getElementById('goldarah').value.trim(),
+            no_rm: noRm,
+            jabatan: document.getElementById('jabatan').value.trim(),
+            departemen: document.getElementById('departemen').value.trim(),
+            divisi: document.getElementById('divisi').value.trim(),
+            jenis: document.getElementById('type_member').value.trim(),
+            idpay: "{{ session('idpay') ?? 'CLXXX' }}"
+        };
+
+        try {
+            const res = await fetch('/simpan-member', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await res.json();
+
+            if (result.success) {
+                alert(result.message);
+
+                // ======= Dapatkan id_member baru =======
+                const newIdMember = result.new_id_member || (parseInt(payload.id_member) + 1);
+
+                // reset form + set id_member baru
+                resetForm(newIdMember);
+
+                // refresh tabel master jika perlu
+                if (typeof fetchHeader === 'function') fetchHeader();
+
+            } else {
+                // pesan jika duplikat NIK/KTP
+                if (result.error_code === 'DUPLICATE_NIK') {
+                    alert('⚠️ NIK/KTP sudah terdaftar. Tidak bisa menyimpan data duplikat.');
+                } else {
+                    alert('Gagal simpan: ' + result.message);
+                }
+            }
+        } catch (err) {
+            // tangkap error database / constraint violation
+            if (err.message.includes('UNIQUE constraint failed') || err.message.includes('Duplicate entry')) {
+                alert('⚠️ NIK/KTP sudah terdaftar. Tidak bisa menyimpan data duplikat.');
+            } else {
+                alert('Error simpan data: ' + err.message);
+            }
+        }
+    });
+
+    // ======== BUTTON CLEAR ========
+    document.getElementById('btnClear').addEventListener('click', function () {
+        resetForm(document.getElementById('id_member_auto').value); // tetap gunakan id_member sekarang
+    });
+
+});
 </script>
 
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const tbody = document.getElementById('pendaftaran-body');
+    const filterSelect = document.getElementById('filterPendaftaran'); // perbaikan di sini
 
+    async function loadPendaftaran(filter = 'today') {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-2">🔄 Memuat data...</td></tr>';
+
+        try {
+            const res = await fetch(`/get-pendaftaran?filter=${filter}`);
+            const data = await res.json();
+
+            if (!Array.isArray(data) || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-2 text-gray-500">Tidak ada data.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+
+            data.forEach((row, index) => {
+                const tglLahir = row.tgl_lahir ? new Date(row.tgl_lahir) : null;
+                const umur = tglLahir ? Math.floor((new Date() - tglLahir) / (365.25 * 24 * 60 * 60 * 1000)) : '-';
+                const gender = row.gender || '-';
+
+                tbody.innerHTML += `
+                    <tr class="bg-white hover:bg-gray-100">
+                        <td class="px-2 py-1 border text-center">${index + 1}</td>
+                        <td class="px-2 py-1 border">${row.nm_member}</td>
+                        <td class="px-2 py-1 border">${row.nik_ktp}</td>
+                        <td class="px-2 py-1 border text-center">${umur}</td>
+                        <td class="px-2 py-1 border text-center">${gender}</td>
+                        <td class="px-2 py-1 border">${row.no_rm}</td>
+                    </tr>
+                `;
+            });
+        } catch (err) {
+            console.error(err);
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-2 text-red-500">⚠️ Error: ${err.message}</td></tr>`;
+        }
+    }
+
+    // Panggil pertama kali
+    loadPendaftaran();
+
+    // Ganti filter
+    filterSelect.addEventListener('change', function() {
+        loadPendaftaran(this.value);
+    });
+});
+</script>
 @endsection

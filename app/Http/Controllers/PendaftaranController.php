@@ -23,7 +23,7 @@ class PendaftaranController extends Controller
 {
     try {
         $type = $request->query('type'); // 'karyawan' atau 'nonkaryawan'
-        $idpay = session('idpay', 'CLKSK'); // fallback
+        $idpay = session('idpay'); // fallback
         $prefix = substr($idpay, -3); // contoh: 'KSK'
 
         if ($type === 'karyawan') {
@@ -110,6 +110,22 @@ public function getIdMember()
             'idpay' => 'nullable|string|max:20',
         ]);
 
+        // Cek apakah NIK/KTP sudah ada
+        if (!empty($validated['nik_ktp'])) {
+            $exists = DB::table('rme_entry_member')
+                        ->where('nik_ktp', $validated['nik_ktp'])
+                        ->exists();
+
+            if ($exists) {
+                return response()->json([
+                    'success' => false,
+                    'error_code' => 'DUPLICATE_NIK',
+                    'message' => '⚠️ NIK/KTP sudah terdaftar. Tidak bisa menyimpan data duplikat.'
+                ]);
+            }
+        }
+
+        // Insert data
         DB::table('rme_entry_member')->insert([
             'id_member' => $validated['id_member'],
             'nm_member' => $validated['nm_member'],
@@ -137,8 +153,35 @@ public function getIdMember()
 
         return response()->json(['success' => true, 'message' => 'Data member berhasil disimpan.']);
     } catch (\Throwable $e) {
+        // Tangkap error database (misal constraint unik)
+        if (str_contains($e->getMessage(), 'UNIQUE') || str_contains($e->getMessage(), 'duplicate')) {
+            return response()->json([
+                'success' => false,
+                'error_code' => 'DUPLICATE_NIK',
+                'message' => '⚠️ NIK/KTP sudah terdaftar. Tidak bisa menyimpan data duplikat.'
+            ]);
+        }
+
         return response()->json(['success' => false, 'message' => $e->getMessage()]);
     }
+}
+
+public function getPendaftaran(Request $request)
+{
+    $filter = $request->input('filter', 'today'); // default 'today'
+
+    $query = DB::table('rme_entry_member');
+
+    if ($filter === 'today') {
+        $query->whereDate('tgl_daftar', now()->toDateString());
+    } elseif ($filter === 'monthly') {
+        $query->whereMonth('tgl_daftar', now()->month)
+              ->whereYear('tgl_daftar', now()->year);
+    }
+
+    $data = $query->orderBy('tgl_daftar', 'desc')->get();
+
+    return response()->json($data);
 }
 
 

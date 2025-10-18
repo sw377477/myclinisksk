@@ -251,7 +251,6 @@ public function generateLK(Request $request)
     ]);
 }
 
-// 3️⃣ Simpan transaksi OBAT KELUAR
 public function storeLK(Request $request)
 {
     try {
@@ -269,7 +268,7 @@ public function storeLK(Request $request)
 
         $lokasi = session('idpay') ?? null;
         if (!$lokasi) {
-            return back()->with('error', 'Session lokasi belum ter-set.');
+            return response()->json(['success' => false, 'error' => 'Session lokasi belum ter-set.']);
         }
 
         $tipe = $request->input('tipe', 'LK');
@@ -302,9 +301,7 @@ public function storeLK(Request $request)
             }
 
             $lokasi3 = strlen($lokasi) >= 3 ? substr($lokasi, -3) : $lokasi;
-            $romawi = [
-                1=>'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'
-            ][$bulan] ?? $bulan;
+            $romawi = [1=>'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'][$bulan] ?? $bulan;
             $noTransaksiLk = "{$next}/{$tipe}-Klinik/{$lokasi3}/{$romawi}/{$tahun}";
 
             foreach ($request->kode_obat as $i => $kode) {
@@ -327,7 +324,6 @@ public function storeLK(Request $request)
                 ]);
             }
 
-            // update status_lk pasien
             if ($request->filled('no_kunjungan')) {
                 DB::table('rme_entry_kunjungan')
                     ->where('no_kunjungan', $request->no_kunjungan)
@@ -337,22 +333,26 @@ public function storeLK(Request $request)
             return $noTransaksiLk;
         });
 
-        // kalau sukses
         return response()->json([
             'success' => true,
             'no_transaksi_keluar' => $noTransaksiFinalLk,
             'message' => "Transaksi {$noTransaksiFinalLk} berhasil disimpan!"
         ]);
+
     } catch (\Illuminate\Validation\ValidationException $e) {
-        return back()->withErrors($e->errors())->withInput();
+        return response()->json(['success' => false, 'errors' => $e->errors()], 422);
     } catch (\Throwable $e) {
-        // error betulan (gagal insert, dsb.)
         \Log::error("Gagal simpan LK: " . $e->getMessage(), [
             'file' => $e->getFile(),
             'line' => $e->getLine(),
         ]);
 
-        return back()->with('error', 'Terjadi kesalahan saat menyimpan transaksi. Silakan coba lagi.');
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ], 500);
     }
 }
 

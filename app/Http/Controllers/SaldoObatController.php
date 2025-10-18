@@ -36,12 +36,12 @@ class SaldoObatController extends Controller
         $lokasi = (string) session('idpay');
         //$lokasi = 'CLKSK';
 
-        \Log::info("PARAMS:", [
-        'tahun' => $tahun,
-        'lokasi' => $lokasi,
-        'bulan' => $bulan
+      //  \Log::info("PARAMS:", [
+      //  'tahun' => $tahun,
+      //  'lokasi' => $lokasi,
+      //  'bulan' => $bulan
 
-    ]);
+    //]);
 
 
         $sql = "
@@ -58,7 +58,7 @@ class SaldoObatController extends Controller
 
             try {
             $data = DB::select($sql, [$tahun, $lokasi, $bulan]);
-            \Log::info("HASIL DATA:", $data);
+        //    \Log::info("HASIL DATA:", $data);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()]);
         }

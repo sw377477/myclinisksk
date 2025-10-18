@@ -1,6 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
+use Milon\Barcode\DNS2D;
+
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MasterController;
 use App\Http\Controllers\MasterObatController;
@@ -18,7 +23,23 @@ use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\DataController;
 use App\Http\Controllers\DiagnosaController;
 use App\Http\Controllers\PendaftaranController;
+use App\Http\Controllers\DashboardController;
 
+//Route::get('/antrian', [AntrianController::class, 'index']);
+//Route::post('/antrian/update', [AntrianController::class, 'update']);
+//Route::post('/antrian/reset', [AntrianController::class, 'reset']);
+
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::get('/rss-health', function () {
+    try {
+        $response = Http::get('https://kemkes.go.id/id/rss/article/artikel-kesehatan');
+        return Response::make($response->body(), 200, ['Content-Type' => 'application/xml']);
+    } catch (\Exception $e) {
+        return response('Gagal memuat RSS.', 500);
+    }
+});
+
+Route::get('/get-pendaftaran', [PendaftaranController::class, 'getPendaftaran']);
 Route::post('/simpan-member', [PendaftaranController::class, 'simpanMember']);
 Route::get('/get-id-member', [PendaftaranController::class, 'getIdMember']);
 Route::get('/get-data', [PendaftaranController::class, 'getData']);
@@ -77,7 +98,6 @@ Route::get('/explore/keluar/detail/{nomor}', [TransaksiController::class, 'detai
 
 
 Route::get('/get-obat/{tahun}/{bulan}/{lokasi}', [TransaksiController::class, 'getObat'])->name('get.obat');
-
 
 Route::get('/pasien/hari-ini', [TransaksiController::class, 'getPasienHariIni'])->name('pasien.hariIni');
 
@@ -241,6 +261,8 @@ Route::get('/home', [AuthController::class, 'home'])->name('home');
 Route::get('/diagnosa', fn() => view('pages.diagnosa'))->name('diagnosa');
 
 Route::get('/satusehat', fn() => view('pages.satusehat'))->name('satusehat');
+Route::get('/trxbiaya', fn() => view('pages.trxbiaya'))->name('trxbiaya');
+//Route::get('/dashboard', fn() => view('dashboard'))->name('dashboard');
 
 //07/10/2025 Route::get('/stock-obat', fn() => view('pages.stock-obat'))->name('stock-obat');
 
@@ -250,3 +272,141 @@ Route::prefix('report')->group(function () {
     Route::get('/obat', fn() => view('pages.report-obat'))->name('report.obat');
     Route::get('/biaya', fn() => view('pages.report-biaya'))->name('report.biaya');
 });
+
+
+// === ANTRIAN FIXED ===
+Route::get('/antrian', function () {
+    $path = storage_path('app/antrian.txt');
+    if (!file_exists($path)) {
+        file_put_contents($path, "0 | " . date('d/m/Y'));
+    }
+    return response()->file($path);
+});
+
+//cetak antrian + barcode
+Route::post('/antrian/update', function (\Illuminate\Http\Request $request) {
+    $action = $request->input('action');
+    $path = storage_path('app/antrian.txt');
+
+    // Pastikan file ada
+    if (!file_exists($path)) {
+        file_put_contents($path, "0 | " . date('d/m/Y'));
+    }
+
+    // Ambil isi file dan pecah
+    $content = trim(file_get_contents($path));
+    $parts = array_map('trim', explode('|', $content));
+
+    // Pastikan dua elemen ada
+    $nomor = isset($parts[0]) && is_numeric($parts[0]) ? (int)$parts[0] : 0;
+    $tanggal = $parts[1] ?? date('d/m/Y');
+
+    $today = date('d/m/Y');
+
+    // Jika file berisi tanggal lama, reset otomatis
+    if ($tanggal !== $today) {
+        $nomor = 0;
+    }
+
+    // Aksi dari tombol
+    switch ($action) {
+        case 'next':
+            $nomor++;
+            break;
+        case 'prev':
+            if ($nomor > 0) $nomor--;
+            break;
+        case 'reset':
+            $nomor = 0;
+            break;
+    }
+
+    // Simpan kembali ke file
+    $newContent = "{$nomor} | {$today}";
+    file_put_contents($path, $newContent, LOCK_EX);
+
+    return response()->json(['nomor' => $nomor, 'tanggal' => $today]);
+});
+
+Route::get('/antrian/cetak/{nomor}', function ($nomor) {
+    // URL tujuan saat QR code di-scan
+    $urlAntrian = url('/antrian/' . $nomor);
+
+    // Format tanggal & waktu
+    //$tanggalWaktu = now()->translatedFormat('l, d F Y H:i:s');
+    $tanggalWaktu = \Carbon\Carbon::now('Asia/Pontianak')->locale('id')->translatedFormat('l, d F Y H:i:s');
+
+
+    // Buat QR Code
+    $barcodeHtml = '';
+    if (class_exists(DNS2D::class)) {
+        // ✅ Gunakan milon/barcode untuk QR code berbasis HTML
+        $d = new DNS2D();
+        $barcodeHtml = $d->getBarcodeHTML($urlAntrian, 'QRCODE', 5, 5, 'black');
+    } else {
+        // 🔁 Fallback ke API online (bwip-js)
+        $src = 'https://bwipjs-api.metafloor.com/?bcid=qrcode&text=' . urlencode($urlAntrian) . '&scale=3';
+        $barcodeHtml = "<img src=\"{$src}\" alt=\"QR Code\" />";
+    }
+
+    // Tampilkan halaman cetak
+    return response()->make("
+    <html>
+    <head>
+        <title>Tiket Antrian</title>
+        <meta charset='utf-8'>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                text-align: center;
+                margin-top: 30px;
+            }
+            h2 {
+                font-size: 20px;
+                margin-bottom: 10px;
+            }
+            .nomor {
+                font-size: 80px;
+                font-weight: bold;
+                margin: 10px 0;
+            }
+            .tanggal {
+                font-size: 14px;
+                margin-bottom: 10px;
+            }
+            .pesan {
+                font-style: italic;
+                font-size: 12px;
+                margin-top: 10px;
+            }
+            .barcode {
+                margin-top: 20px;
+            }
+            .small {
+                font-size: 12px;
+                color: #666;
+                margin-top: 8px;
+            }
+            @media print {
+                button#printBtn { display: none; }
+            }
+        </style>
+    </head>
+    <body>
+        <h2>Nomor Antrian</h2>
+        <div class='nomor'>{$nomor}</div>
+        <div class='tanggal'>{$tanggalWaktu}</div>
+        <div class='pesan'>Harap Menunggu Panggilan</div>
+        <div class='barcode'>{$barcodeHtml}</div>
+        <div style='margin-top:25px;'>
+            <button id='printBtn' onclick='window.print();'>Cetak</button>
+        </div>
+        <script>
+            // Auto print (opsional)
+            // window.print(); setTimeout(() => window.close(), 500);
+        </script>
+    </body>
+    </html>", 200, ['Content-Type' => 'text/html']);
+});
+
+
