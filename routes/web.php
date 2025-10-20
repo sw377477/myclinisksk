@@ -275,57 +275,88 @@ Route::prefix('report')->group(function () {
 
 
 // === ANTRIAN FIXED ===
-Route::get('/antrian', function () {
+// 🔹 GET: ambil isi antrian.txt
+Route::get('/antrian', function (Request $request) {
+    $idpay = $request->query('idpay', 'DEFAULT');
+    $today = date('d/m/Y');
     $path = storage_path('app/antrian.txt');
+
     if (!file_exists($path)) {
-        file_put_contents($path, "0 | " . date('d/m/Y'));
+        file_put_contents($path, "");
     }
-    return response()->file($path);
+
+    $lines = array_filter(array_map('trim', file($path)));
+    $found = false;
+    $nomor = 0;
+
+    foreach ($lines as $line) {
+        [$id, $no, $tgl] = array_map('trim', explode('|', $line));
+        if ($id === $idpay && $tgl === $today) {
+            $nomor = (int) $no;
+            $found = true;
+            break;
+        }
+    }
+
+    // jika belum ada record hari ini, tambahkan baru dengan nomor 0
+    if (!$found) {
+        file_put_contents($path, "{$idpay} | 0 | {$today}\n", FILE_APPEND);
+    }
+
+    return response()->json(['idpay' => $idpay, 'nomor' => $nomor, 'tanggal' => $today]);
 });
 
-//cetak antrian + barcode
-Route::post('/antrian/update', function (\Illuminate\Http\Request $request) {
+Route::post('/antrian/update', function (Request $request) {
+    $idpay = $request->input('idpay', 'DEFAULT');
     $action = $request->input('action');
+    $today = date('d/m/Y');
     $path = storage_path('app/antrian.txt');
 
-    // Pastikan file ada
     if (!file_exists($path)) {
-        file_put_contents($path, "0 | " . date('d/m/Y'));
+        file_put_contents($path, "");
     }
 
-    // Ambil isi file dan pecah
-    $content = trim(file_get_contents($path));
-    $parts = array_map('trim', explode('|', $content));
+    $lines = array_filter(array_map('trim', file($path)));
+    $updated = false;
+    $newLines = [];
 
-    // Pastikan dua elemen ada
-    $nomor = isset($parts[0]) && is_numeric($parts[0]) ? (int)$parts[0] : 0;
-    $tanggal = $parts[1] ?? date('d/m/Y');
+    foreach ($lines as $line) {
+        [$id, $no, $tgl] = array_map('trim', explode('|', $line));
 
-    $today = date('d/m/Y');
+        if ($id === $idpay && $tgl === $today) {
+            $nomor = (int) $no;
 
-    // Jika file berisi tanggal lama, reset otomatis
-    if ($tanggal !== $today) {
+            switch ($action) {
+                case 'next':  $nomor++; break;
+                case 'prev':  if ($nomor > 0) $nomor--; break;
+                case 'reset': $nomor = 0; break;
+            }
+
+            $newLines[] = "{$idpay} | {$nomor} | {$today}";
+            $updated = true;
+        } else {
+            $newLines[] = $line;
+        }
+    }
+
+    // kalau belum ada record hari ini, tambahkan baru
+    if (!$updated) {
         $nomor = 0;
+        if ($action === 'next') $nomor = 1;
+        $newLines[] = "{$idpay} | {$nomor} | {$today}";
     }
 
-    // Aksi dari tombol
-    switch ($action) {
-        case 'next':
-            $nomor++;
-            break;
-        case 'prev':
-            if ($nomor > 0) $nomor--;
-            break;
-        case 'reset':
-            $nomor = 0;
-            break;
-    }
+    // 🔽 Sort descending berdasarkan tanggal
+    usort($newLines, function ($a, $b) {
+        $ta = DateTime::createFromFormat('d/m/Y', trim(explode('|', $a)[2])) ?: new DateTime('1970-01-01');
+        $tb = DateTime::createFromFormat('d/m/Y', trim(explode('|', $b)[2])) ?: new DateTime('1970-01-01');
+        return $tb <=> $ta; // descending
+    });
 
-    // Simpan kembali ke file
-    $newContent = "{$nomor} | {$today}";
-    file_put_contents($path, $newContent, LOCK_EX);
+    // tulis ulang file
+    file_put_contents($path, implode("\n", $newLines) . "\n", LOCK_EX);
 
-    return response()->json(['nomor' => $nomor, 'tanggal' => $today]);
+    return response()->json(['idpay' => $idpay, 'nomor' => $nomor, 'tanggal' => $today]);
 });
 
 Route::get('/antrian/cetak/{nomor}', function ($nomor) {
