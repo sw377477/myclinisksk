@@ -110,4 +110,195 @@ public function create()
     return view('pages.stock-obat', compact('obatList'));
 }
 
+public function destroyKeluar($nomor)
+{
+    try {
+        // Hapus semua data dengan nomor yang sama
+        DB::table('rme_obat_keluar')
+            ->where('nomor', $nomor)
+            ->delete();
+
+        return response()->json(['success' => true]);
+    } catch (\Exception $e) {
+        \Log::error('Gagal hapus data keluar: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage()
+        ]);
+    }
+}
+
+public function destroyMasuk($nomor)
+{
+    try {
+        DB::table('rme_obat_masuk')
+            ->where('nomor', $nomor)
+            ->delete();
+
+        return response()->json(['success' => true]);
+    } catch (\Exception $e) {
+        \Log::error('Gagal hapus data masuk: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage()
+        ]);
+    }
+}
+
+public function update(Request $request)
+{
+    $nomor = $request->nomor;
+    $rows = $request->rows;
+    $lokasi = session('idpay');
+    $nama_pasien = $request->nama_pasien;
+    $no_rm = $request->no_rm;
+    $tanggal = $request->tanggal;
+
+    DB::beginTransaction();
+    try {
+        // 🔹 Ambil semua ID lama di DB untuk nomor ini
+        $existingIds = DB::table('rme_obat_keluar')
+            ->where('nomor', $nomor)
+            ->pluck('id')
+            ->toArray();
+
+        // 🔹 Kumpulkan semua ID yang dikirim user (yang tidak null)
+        $sentIds = collect($rows)->pluck('id')->filter()->toArray();
+
+        // 🔹 Cari baris yang dihapus oleh user (ada di DB tapi tidak dikirim)
+        $deletedIds = array_diff($existingIds, $sentIds);
+
+        // 🔹 Hapus baris yang dihapus user
+        if (!empty($deletedIds)) {
+            DB::table('rme_obat_keluar')->whereIn('id', $deletedIds)->delete();
+        }
+
+        // 🔹 Loop baris kiriman
+        foreach ($rows as $row) {
+            if (!empty($row['id'])) {
+                // ✅ Update baris lama
+                DB::table('rme_obat_keluar')
+                    ->where('id', $row['id'])
+                    ->update([
+                        'kode' => $row['kode'],
+                        'qty' => $row['qty'],
+                        'satuan' => $row['satuan'],
+                        'harga' => $row['harga'],
+                        'jumlah' => $row['jumlah'],
+                        'nama_pasien' => $nama_pasien,
+                        'no_rm' => $no_rm,
+                        'tanggal' => $tanggal,
+                        'tgl_update' => now(),
+                        'jam_update' => now(),
+                        'user_update' => auth()->user()->name ?? 'system',
+                    ]);
+            } else {
+                // 🆕 Insert baris baru
+                DB::table('rme_obat_keluar')->insert([
+                    'nomor' => $nomor,
+                    'kode' => $row['kode'],
+                    'qty' => $row['qty'],
+                    'satuan' => $row['satuan'],
+                    'harga' => $row['harga'],
+                    'jumlah' => $row['jumlah'],
+                    'periode' => now()->format('Ym'),
+                    'lokasi' => $lokasi,
+                    'tanggal' => $tanggal,
+                    'nama_pasien' => $nama_pasien,
+                    'no_rm' => $no_rm,
+                    'user_input' => auth()->user()->name ?? 'system',
+                    'tgl_input' => now(),
+                    'jam_input' => now(),
+                ]);
+            }
+        }
+
+        DB::commit();
+        return response()->json(['success' => true]);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json(['success' => false, 'error' => $e->getMessage()]);
+    }
+}
+
+public function updateMasuk(Request $request)
+{
+    $nomor = $request->input('nomor');
+    $rows = $request->input('rows', []);
+
+    DB::beginTransaction();
+
+    try {
+        // 1️⃣ Ambil semua ID lama berdasarkan nomor
+        $oldIds = DB::table('rme_obat_masuk')
+            ->where('nomor', $nomor)
+            ->pluck('id')
+            ->toArray();
+
+        $newIds = [];
+
+        // 2️⃣ Loop semua baris baru (insert/update)
+        foreach ($rows as $row) {
+            if (!empty($row['id'])) {
+                // Jika baris sudah ada → update
+                DB::table('rme_obat_masuk')
+                    ->where('id', $row['id'])
+                    ->update([
+                        'kode'       => $row['kode'],
+                        'qty'        => $row['qty'],
+                        'satuan'     => $row['satuan'],
+                        'harga'      => $row['harga'],
+                        'jumlah'     => $row['jumlah'],
+                        'expired'    => $row['expired'] ?? null,
+                        'no_batch'   => $row['no_batch'] ?? null,
+                        'ket'        => $row['ket'] ?? null,
+                        'user_update'=> auth()->user()->name ?? 'system',
+                        'tgl_update' => now()->toDateString(),
+                        'jam_update' => now()->toTimeString(),
+                    ]);
+
+                $newIds[] = $row['id'];
+            } else {
+                // Jika baris baru → insert
+                $newId = DB::table('rme_obat_masuk')->insertGetId([
+                    'periode'     => $request->input('periode'),
+                    'lokasi'      => $request->input('lokasi'),
+                    'nomor'       => $nomor,
+                    'tanggal'     => $request->input('tanggal'),
+                    'kode'        => $row['kode'],
+                    'qty'         => $row['qty'],
+                    'satuan'      => $row['satuan'],
+                    'harga'       => $row['harga'],
+                    'jumlah'      => $row['jumlah'],
+                    'expired'     => $row['expired'] ?? null,
+                    'no_batch'    => $row['no_batch'] ?? null,
+                    'ket'         => $row['ket'] ?? null,
+                    'user_input'  => auth()->user()->name ?? 'system',
+                    'tgl_input'   => now()->toDateString(),
+                    'jam_input'   => now()->toTimeString(),
+                    'unixrow'     => time(),
+                ]);
+
+                $newIds[] = $newId;
+            }
+        }
+
+        // 3️⃣ Hapus baris lama yang tidak ada di data baru
+        $deleteIds = array_diff($oldIds, $newIds);
+        if (!empty($deleteIds)) {
+            DB::table('rme_obat_masuk')
+                ->whereIn('id', $deleteIds)
+                ->delete();
+        }
+
+        DB::commit();
+
+        return response()->json(['success' => true, 'message' => 'Data berhasil diperbarui']);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+
+
 }

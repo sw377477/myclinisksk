@@ -406,9 +406,9 @@ public function headerMasuk($tahun, $bulan)
     public function detailMasuk($nomor)
     {
         $rows = DB::select("
-            SELECT ROW_NUMBER() OVER(ORDER BY b.nama_obat) AS no, 
+            SELECT a.id,ROW_NUMBER() OVER(ORDER BY b.nama_obat) AS no, 
                    a.kode, b.nama_obat, a.qty, a.satuan, a.harga, a.jumlah, 
-                   a.expired, a.no_batch
+                   TO_CHAR(a.expired, 'YYYY-MM-DD') AS expired, a.no_batch, a.ket
             FROM rme_obat_masuk a
             JOIN rme_master_obat b ON b.kode_obat = a.kode
             WHERE a.nomor = ?
@@ -424,10 +424,10 @@ public function headerMasuk($tahun, $bulan)
         $lokasi = session('idpay');
 
         $rows = DB::select("
-            SELECT DISTINCT tanggal, nomor, nama_pasien
+            SELECT DISTINCT tanggal, nomor, nama_pasien, no_rm
             FROM rme_obat_keluar
             WHERE lokasi = ? AND periode = ?
-            ORDER BY tanggal, nomor
+            ORDER BY nomor
         ", [$lokasi, $periode]);
 
         return response()->json($rows);

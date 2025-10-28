@@ -224,8 +224,6 @@
                         <ul class="ml-4 list-disc text-gray-600 space-y-1">
                             <li><button class="text-blue-600 hover:underline panduan-item" data-target="popupTabKunjungan">Data Kunjungan</button></li>
                             <li><button class="text-blue-600 hover:underline panduan-item" data-target="popupTabPendaftaran">Data Pendaftaran</button></li>
-                            <li><button class="text-blue-600 hover:underline panduan-item">Explore Data</button></li>
-                        </ul>
                     </div>
 
                     <!-- Menu Diagnosa -->

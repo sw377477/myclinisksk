@@ -68,6 +68,17 @@ class DiagnosaController extends Controller
 {
     try {
         DB::beginTransaction();
+        // Ambil tanggal kunjungan terakhir berdasarkan no_rm
+        $tglKunjungan = DB::table('rme_entry_kunjungan as a')
+            ->join('rme_entry_member as b', 'b.id_member', '=', 'a.id_member')
+            ->whereRaw('TRIM(b.no_rm) = ?', [trim($request->no_rm)])
+            ->orderByDesc('a.tgl_kunjungan')
+            ->limit(1)
+            ->value('a.tgl_kunjungan');
+
+        if (!$tglKunjungan) {
+            throw new \Exception("Tanggal kunjungan tidak ditemukan untuk pasien ini.");
+        }
 
         // Simpan ke rme_entry_anamnesa
         DB::table('rme_entry_anamnesa')->insert([
@@ -80,7 +91,7 @@ class DiagnosaController extends Controller
             'alergi' => $request->alergi,
             'berat' => $request->berat,
             'tinggi' => $request->tinggi,
-            'created_at' => now(),
+            'created_at' => $tglKunjungan,
         ]);
 
         // Simpan ke rme_entry_diagnosa
@@ -88,7 +99,7 @@ class DiagnosaController extends Controller
             'no_rm' => trim($request->no_rm),
             'kode_icd' => $request->kode_icd,
             'diagnosa' => $request->diagnosa,
-            'created_at' => now(),
+            'created_at' => $tglKunjungan,
         ]);
 
         DB::commit();

@@ -24,6 +24,14 @@ use App\Http\Controllers\DataController;
 use App\Http\Controllers\DiagnosaController;
 use App\Http\Controllers\PendaftaranController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ReportKunjunganController;
+
+Route::prefix('report/kunjungan')->group(function () {
+    Route::get('/', [ReportKunjunganController::class, 'index'])->name('report.kunjungan');
+    Route::get('/data', [ReportKunjunganController::class, 'getData'])->name('report.kunjungan.data');
+    Route::get('/excel', [ReportKunjunganController::class, 'exportExcel'])->name('report.kunjungan.excel');
+    Route::get('/pdf', [ReportKunjunganController::class, 'exportPdf'])->name('report.kunjungan.pdf');
+});
 
 //Route::get('/antrian', [AntrianController::class, 'index']);
 //Route::post('/antrian/update', [AntrianController::class, 'update']);
@@ -118,6 +126,14 @@ Route::get('/transaksi/generate', [TransaksiController::class, 'generate'])
     ->name('transaksi.generate');
 Route::get('/transaksi/generate-lk', [TransaksiController::class, 'generateLK'])
     ->name('transaksi.generateLK');
+
+Route::delete('/explore/keluar/delete/{nomor}', [SaldoObatController::class, 'destroyKeluar'])
+        ->where('nomor', '.*');
+Route::delete('/explore/masuk/delete/{nomor}', [SaldoObatController::class, 'destroyMasuk'])
+    ->where('nomor', '.*');
+Route::post('/explore/masuk/update', [SaldoObatController::class, 'updateMasuk']);
+
+Route::post('/explore/keluar/update', [SaldoObatController::class, 'update']);
 
 Route::get('/pages/stock-obat', [SaldoObatController::class, 'create'])->name('stock-obat.create');
 

@@ -1,4 +1,15 @@
 @extends('layouts.app')
+@section('style')
+<style>
+.select2-container {
+  width: 100% !important;
+}
+.select2-dropdown {
+  z-index: 99999 !important;
+}
+</style>
+@endsection
+
 @section('content')
 <div class="h-[680px] flex flex-col p-5 bg-white rounded-2xl shadow-xl">
    <h1 class="text-2xl font-bold mb-0.5">📦 Stock Obat</h1>
@@ -345,7 +356,100 @@
                      <!-- 📥 Data Masuk -->
                      <div x-show="exploreTab === 'datamasuk'" x-transition
                         class="absolute inset-0 p-4 bg-yellow-50 rounded-lg shadow-inner flex flex-col space-y-4"
-                        x-data="{ headerMasuk: [], detailMasuk: [], tahunMasuk:'', bulanMasuk:'', selectedNomor:'' }">
+                        x-data="{headerMasuk: [],
+                                 detailMasuk: [],
+                                 tahunMasuk: '',
+                                 bulanMasuk: '',
+                                 selectedNomor: '',
+                                 selectedTanggal: '',
+                                 showModalEditLT: false,
+                                 editRowsLT: [],
+                                 hapusIds: [],
+
+                                 async hapusDataMasuk(nomor) {
+                                          if (confirm('Yakin ingin menghapus data MASUK dengan nomor ' + nomor + '?')) {
+                                             const res = await fetch(`/explore/masuk/delete/${encodeURIComponent(nomor)}`, {
+                                                method: 'DELETE',
+                                                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content }
+                                             });
+                                             const data = await res.json();
+                                             if (data.success) {
+                                                alert('✅ Data MASUK berhasil dihapus');
+                                                this.headerMasuk = this.headerMasuk.filter(h => h.nomor !== nomor);
+                                             } else {
+                                                alert('⚠️ ' + (data.error || 'Gagal menghapus data MASUK'));
+                                             }
+                                          }
+                                       },
+
+                                 async bukaEditLT(nomor) {
+                                       if (!nomor) {
+                                          alert('⚠️ Pilih nomor dulu dari daftar sebelum mengedit!');
+                                          return;
+                                       }
+                                       this.selectedNomor = nomor;
+                                       this.showModalEditLT = true;
+
+                                       const res = await fetch(`/explore/masuk/detail/${encodeURIComponent(nomor)}`);
+                                       const data = await res.json();
+
+                                       this.editRowsLT = data.map(r => ({
+                                          id: r.id,  // ⚠️ penting!
+                                          kode: r.kode,
+                                          satuan: r.satuan,
+                                          qty: r.qty,
+                                          harga: r.harga,
+                                          jumlah: r.jumlah,
+                                          expired: r.expired || '',
+                                          no_batch: r.no_batch || '',
+                                          ket: r.ket || ''
+                                       }));
+                                 },
+
+                                 tambahBarisEditLT() {
+                                       this.editRowsLT.push({ id: null, kode: '', satuan: '', qty: 0, harga: 0, jumlah: 0, expired: '', no_batch: '' });
+                                 },
+
+                                 hapusBarisEditLT(index) {
+                                 const row = this.editRowsLT[index];
+                                 if (row.id) {
+                                    this.hapusIds.push(row.id); // tandai untuk dihapus di backend
+                                 }
+                                 this.editRowsLT.splice(index, 1);
+                                 },
+
+                                 async simpanEditLT() {
+                                 const payload = { 
+                                    nomor: this.selectedNomor, 
+                                    tanggal: this.selectedTanggal, 
+                                    rows: this.editRowsLT, 
+                                    hapusIds: this.hapusIds
+                                 };
+
+                                 console.log('🔹 Payload terkirim:', payload);
+
+                                 const res = await fetch('/explore/masuk/update', {
+                                    method: 'POST',
+                                    headers: {
+                                          'Content-Type': 'application/json',
+                                          'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content
+                                    },
+                                    body: JSON.stringify(payload)
+                                 });
+
+                                 // Log hasil response
+                                 const data = await res.json().catch(() => ({ error: 'Respon bukan JSON' }));
+                                 console.log('📦 Respons server:', data);
+
+                                 if (data.success) {
+                                    alert('✅ Data berhasil diperbarui');
+                                    this.showModalEditLT = false;
+                                    this.hapusIds = [];
+                                 } else {
+                                    alert('❌ Gagal memperbarui data: ' + (data.error || 'Unknown error'));
+                                 }
+                              }
+                              }">
                         <!-- Filter Periode -->
                         <div class="flex space-x-4">
                            <select x-model="bulanMasuk" class="border rounded-lg px-3 py-2">
@@ -365,6 +469,100 @@
                               .then(r=>r.json()).then(d=>{headerMasuk=d; detailMasuk=[]});
                               }"
                               class="px-3 py-2 bg-blue-500 text-white rounded-lg">🔍 Tampilkan LT</button>
+                           <button class="px-3 py-2 bg-yellow-500 text-white rounded-lg"
+                                    @click="bukaEditLT(selectedNomor)">
+                                 🖋 Edit Data LT
+                           </button> 
+                           <!-- Modal popup edit -->
+                           <div x-show="showModalEditLT" x-transition
+                                 class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                                 <div id="modalEditContainerLT" class="bg-white rounded-xl shadow-xl p-4 w-[1000px]"
+                                    @click.outside="showModalEditLT=false; editRowsLT=[]">
+
+                                    <h2 class="text-lg font-semibold mb-3">Edit Data LT: <span x-text="selectedNomor"></span></h2>
+
+                                    <!-- tabel input -->
+                                    <div class="overflow-x-auto max-h-[400px] overflow-y-auto">
+                                       <table class="min-w-full border border-gray-300 text-sm">
+                                             <thead class="bg-gray-100">
+                                                <tr>
+                                                   <th class="border px-3 py-2 text-center w-68">Obat</th>
+                                                   <th class="border px-3 py-2 text-center w-24">Satuan</th>
+                                                   <th class="border px-3 py-2 text-center w-20">Qty</th>
+                                                   <th class="border px-3 py-2 text-center w-32">Harga</th>
+                                                   <th class="border px-3 py-2 text-center w-32">Jumlah</th>
+                                                   <th class="border px-2 py-1 text-center w-32">Expired</th>
+                                                   <th class="border px-2 py-1 text-center w-32">No Batch</th>
+                                                   <th class="border px-2 py-1 w-10 text-center">🗑️</th>
+                                                </tr>
+                                             </thead>
+                                             <tbody>
+                                                <template x-for="(r, i) in editRowsLT" :key="r.id ?? i">
+                                                   <tr x-effect="r.jumlah = (parseFloat(r.qty||0) * parseFloat(r.harga||0)).toFixed(2)">
+                                                         <td class="border px-2 py-1">
+                                                            <select x-model="r.kode"
+                                                               x-init="$nextTick(() => { 
+                                                                     const el = $el;
+                                                                     $(el).select2({
+                                                                        placeholder: '🔍 Cari obat...',
+                                                                        allowClear: true,
+                                                                        width: '100%',
+                                                                        dropdownParent: $('#modalEditContainerLT')
+                                                                     });
+                                                                     $(el).on('change', (e) => {
+                                                                        const selected = e.target.selectedOptions[0];
+                                                                        r.kode = e.target.value;
+                                                                        r.satuan = selected?.dataset.satuan || '';
+                                                                        r.harga = parseFloat(selected?.dataset.harga || 0);
+                                                                        r.jumlah = (r.qty * r.harga).toFixed(2);
+                                                                     });
+                                                               })"
+                                                               class="select2-obat border rounded px-2 py-1 w-full">
+                                                               <option value="">-- Pilih Obat --</option>
+                                                               @foreach($obatList ?? [] as $obat)
+                                                               <option value="{{ $obat->kode_obat }}" 
+                                                                        data-satuan="{{ $obat->satuan }}">
+                                                                     {{ $obat->nama_obat }}
+                                                               </option>
+                                                               @endforeach
+                                                            </select>
+                                                         </td>
+                                                         <td class="border px-2 py-1">
+                                                            <input type="text" x-model="r.satuan" class="border rounded px-2 py-1 w-full text-center" readonly>
+                                                         </td>
+                                                         <td class="border px-2 py-1">
+                                                            <input type="number" x-model.number="r.qty" class="border rounded px-2 py-1 w-full text-right" @input="r.jumlah = (r.qty * r.harga).toFixed(2)">
+                                                         </td>
+                                                         <td class="border px-2 py-1">
+                                                            <input type="number" x-model.number="r.harga" class="border rounded px-2 py-1 w-full text-right" @input="r.jumlah = (r.qty * r.harga).toFixed(2)">
+                                                         </td>
+                                                         <td class="border px-2 py-1">
+                                                            <input type="number" x-model.number="r.jumlah" class="border rounded px-2 py-1 w-full text-right" readonly>
+                                                         </td>
+                                                         <td class="border px-2 py-1">
+                                                            <input type="date" x-model="r.expired" class="w-full border rounded p-1">
+                                                         </td>
+                                                         <td class="border px-2 py-1">
+                                                            <input type="text" x-model="r.no_batch" class="w-full border rounded p-1 text-center">
+                                                         </td>
+                                                         <td class="border px-2 py-1 text-center">
+                                                            <button @click="hapusBarisEditLT(i)" class="bg-red-500 text-white px-2 py-1 rounded">✕</button>
+                                                         </td>
+                                                   </tr>
+                                                </template>
+                                             </tbody>
+                                       </table>
+                                    </div>
+
+                                    <div class="mt-3 flex justify-between">
+                                       <button @click="tambahBarisEditLT()" class="bg-blue-500 text-white px-4 py-2 rounded">+ Tambah Baris</button>
+                                       <div class="space-x-2">
+                                             <button @click="simpanEditLT()" class="bg-green-600 text-white px-4 py-2 rounded">💾 Simpan</button>
+                                             <button @click="showModalEditLT=false; editRowsLT=[]" class="bg-gray-400 text-white px-4 py-2 rounded">Tutup</button>
+                                       </div>
+                                    </div>
+                                 </div>
+                           </div>                         
                         </div>
                         <!-- Tabel -->
                         <div class="flex flex-1 space-x-4 overflow-hidden">
@@ -376,6 +574,7 @@
                                     <tr>
                                        <th class="border px-2 py-1">Tanggal</th>
                                        <th class="border px-2 py-1">Nomor</th>
+                                       <th class="border px-2 py-1">Aksi</th>
                                     </tr>
                                  </thead>
                                  <tbody>
@@ -386,6 +585,10 @@
                                           .then(r=>r.json()).then(d=>detailMasuk=d)">
                                           <td class="border px-2 py-1" x-text="new Date(h.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' })"></td>
                                           <td class="border px-2 py-1 font-mono text-blue-600" x-text="h.nomor"></td>
+                                          <td class="border px-2 py-1 text-center">
+                                             <button @click.stop="hapusDataMasuk(h.nomor)"
+                                                   class="text-red-600 hover:text-red-800">❌</button>
+                                          </td>
                                        </tr>
                                     </template>
                                  </tbody>
@@ -430,7 +633,67 @@
                      <!-- 📤 Data Keluar -->
                      <div x-show="exploreTab === 'datakeluar'" x-transition
                         class="absolute inset-0 p-4 bg-yellow-50 rounded-lg shadow-inner flex flex-col space-y-4"
-                        x-data="{ headerKeluar: [], detailKeluar: [], tahunKeluar:'', bulanKeluar:'', selectedNomor:'' }">
+                        x-data="{ headerKeluar: [],
+                                 detailKeluar: [],
+                                 tahunKeluar: '',
+                                 bulanKeluar: '',
+                                 selectedNomor: '',
+                                 selectedNamaPasien: '',
+                                 selectedNoRM: '',
+                                 selectedTanggal: '',
+                                 showModalEdit: false,
+                                 editRows: [],
+
+                                 async bukaEditLK(nomor) {
+                                       if (!nomor) {
+                                          alert('⚠️ Pilih nomor dulu dari daftar sebelum mengedit!');
+                                          return;
+                                       }
+                                       this.selectedNomor = nomor;
+                                       this.showModalEdit = true;
+
+                                       const res = await fetch(`/explore/keluar/detail/${encodeURIComponent(nomor)}`);
+                                       const data = await res.json();
+
+                                       this.editRows = data.map(r => ({
+                                          id: r.id,
+                                          kode: r.kode,
+                                          satuan: r.satuan,
+                                          qty: r.qty,
+                                          harga: r.harga,
+                                          jumlah: r.jumlah
+                                       }));
+                                 },
+
+                                 tambahBarisEdit() {
+                                       this.editRows.push({ id: null, kode: '', satuan: '', qty: 0, harga: 0, jumlah: 0 });
+                                 },
+
+                                 hapusBarisEdit(index) {
+                                       this.editRows.splice(index, 1);
+                                 },
+
+                                 async simpanEditLK() {
+                                       const payload = { nomor: this.selectedNomor, nama_pasien: this.selectedNamaPasien, no_rm: this.selectedNoRM, tanggal: this.selectedTanggal, rows: this.editRows };
+
+                                       const res = await fetch('/explore/keluar/update', {
+                                          method: 'POST',
+                                          headers: {
+                                             'Content-Type': 'application/json',
+                                             'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content
+                                          },
+                                          body: JSON.stringify(payload)
+                                       });
+
+                                       const data = await res.json();
+                                       if (data.success) {
+                                          alert('✅ Data berhasil diperbarui');
+                                          this.showModalEdit = false;
+                                       } else {
+                                          alert('❌ Gagal memperbarui data: ' + (data.error || 'Unknown error'));
+                                       }
+                                 }
+                              }">
                         <!-- Filter Periode -->
                         <div class="flex space-x-4">
                            <select x-model="bulanKeluar" class="border rounded-lg px-3 py-2">
@@ -450,11 +713,124 @@
                               .then(r=>r.json()).then(d=>{headerKeluar=d; detailKeluar=[]});
                               }"
                               class="px-3 py-2 bg-blue-500 text-white rounded-lg">🔍 Tampilkan LK</button>
-                        </div>
+                              <button class="px-3 py-2 bg-yellow-500 text-white rounded-lg"
+                                    @click="bukaEditLK(selectedNomor)">
+                                 🖋 Edit Data LK
+                              </button>
+
+                              <!-- Modal popup edit -->
+                              <div x-show="showModalEdit" x-transition
+                                 class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                                 <div id="modalEditContainer" class="bg-white rounded-xl shadow-xl p-4 w-[900px]" @click.outside="showModalEdit=false; editRows=[]">
+
+                                    <h2 class="text-lg font-semibold mb-3">Edit Data LK: <span x-text="selectedNomor"></span></h2>
+
+                                    <!-- tabel input -->
+                                    <div class="overflow-x-auto max-h-[400px] overflow-y-auto">
+                                          <table class="min-w-full border border-gray-300 text-sm">
+                                             <thead class="bg-gray-100">
+                                                <tr>
+                                                      <th class="border px-3 py-2 text-center w-72">Obat</th>
+                                                      <th class="border px-3 py-2 text-center w-24">Satuan</th>
+                                                      <th class="border px-3 py-2 text-center w-20">Qty</th>
+                                                      <th class="border px-3 py-2 text-center w-32">Harga</th>
+                                                      <th class="border px-3 py-2 text-center w-32">Jumlah</th>
+                                                      <th class="border px-3 py-2 text-center w-10">Aksi</th>
+                                                </tr>
+                                             </thead>
+                                             <tbody>
+                                                <template x-for="(r, i) in editRows" :key="r.id ?? i">
+                                                      <tr x-effect="r.jumlah = (parseFloat(r.qty||0) * parseFloat(r.harga||0)).toFixed(2)">
+                                                         <td class="border px-2 py-1">
+                                                            <select x-model="r.kode"
+                                                            x-init="$nextTick(() => { 
+                                                                        const el = $el;
+                                                                        $(el).select2({
+                                                                           placeholder: '🔍 Cari obat...',
+                                                                           allowClear: true,
+                                                                           width: '100%',
+                                                                           dropdownParent: $('#modalEditContainer')
+                                                                        });
+                                                                        $(el).on('change', (e) => {
+                                                                           const selected = e.target.selectedOptions[0];
+                                                                           r.kode = e.target.value;
+                                                                           r.satuan = selected?.dataset.satuan || '';
+                                                                           r.harga = parseFloat(selected?.dataset.harga || 0);
+                                                                           r.jumlah = (r.qty * r.harga).toFixed(2);
+                                                                        });
+                                                                  })"
+                                                                  class="select2-obat border rounded px-2 py-1 w-full">
+                                                               <option value="">-- Pilih Obat --</option>
+                                                               @foreach($obatList ?? [] as $obat)
+                                                               <option value="{{ $obat->kode_obat }}" 
+                                                                        data-satuan="{{ $obat->satuan }}">
+                                                                  {{ $obat->nama_obat }}
+                                                               </option>
+                                                               @endforeach
+                                                            </select>
+                                                         </td>
+                                                         <td class="border px-2 py-1">
+                                                            <input type="text" x-model="r.satuan" class="border rounded px-2 py-1 w-full text-center" readonly>
+                                                         </td>
+                                                         <td class="border px-2 py-1">
+                                                            <input type="number" x-model.number="r.qty" class="border rounded px-2 py-1 w-full text-right" @input="r.jumlah = (r.qty * r.harga).toFixed(2)">
+                                                         </td>
+                                                         <td class="border px-2 py-1">
+                                                            <input type="number" x-model.number="r.harga" class="border rounded px-2 py-1 w-full text-right" @input="r.jumlah = (r.qty * r.harga).toFixed(2)">
+                                                         </td>
+                                                         <td class="border px-2 py-1">
+                                                            <input type="number" x-model.number="r.jumlah" class="border rounded px-2 py-1 w-full text-right" readonly>
+                                                         </td>
+                                                         <td class="border px-2 py-1 text-center">
+                                                            <button @click="hapusBarisEdit(i)" class="bg-red-500 text-white px-2 py-1 rounded">✕</button>
+                                                         </td>
+                                                      </tr>
+                                                </template>
+                                             </tbody>
+                                          </table>
+                                    </div>
+
+                                    <div class="mt-3 flex justify-between">
+                                          <button @click="tambahBarisEdit()" class="bg-blue-500 text-white px-4 py-2 rounded">+ Tambah Baris</button>
+                                          <div class="space-x-2">
+                                             <button @click="simpanEditLK()" class="bg-green-600 text-white px-4 py-2 rounded">💾 Simpan</button>
+                                             <button @click="showModalEdit=false; editRows=[]" class="bg-gray-400 text-white px-4 py-2 rounded">Tutup</button>
+                                          </div>
+                                    </div>
+
+                                 </div>
+                              </div>
+                        </div>                        
+                        
                         <!-- Tabel -->
                         <div class="flex flex-1 space-x-4 overflow-hidden">
                            <!-- Header (kanan) -->
-                           <div class="w-[600px] bg-white rounded-xl shadow p-2 overflow-auto">
+                           <div class="w-[600px] bg-white rounded-xl shadow p-2 overflow-auto"
+                           x-data="{
+                                    async hapusDataKeluar(nomor) {
+                                          if (confirm('Yakin ingin menghapus data KELUAR dengan nomor ' + nomor + '?')) {
+                                             try {
+                                                const res = await fetch(`/explore/keluar/delete/${encodeURIComponent(nomor)}`, {
+                                                      method: 'DELETE',
+                                                      headers: {
+                                                         'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content
+                                                      }
+                                                });
+                                                const data = await res.json();
+
+                                                if (data.success) {
+                                                      alert('✅ Data KELUAR berhasil dihapus');
+                                                      // hapus baris dari array headerKeluar
+                                                      this.headerKeluar = this.headerKeluar.filter(h => h.nomor !== nomor);
+                                                } else {
+                                                      alert('⚠️ ' + (data.error || 'Gagal menghapus data KELUAR'));
+                                                }
+                                             } catch (err) {
+                                                alert('Terjadi kesalahan: ' + err.message);
+                                             }
+                                          }
+                                    }
+                                 }">
                               <h5 class="font-bold mb-2">Header Keluar</h5>
                               <table class="w-full text-sm border">
                                  <thead class="bg-gray-200">
@@ -462,17 +838,25 @@
                                        <th class="border px-2 py-1">Tanggal</th>
                                        <th class="border px-2 py-1">Nomor</th>
                                        <th class="border px-2 py-1">Nama Pasien</th>
+                                       <th class="border px-2 py-1 text-center">Aksi</th>
                                     </tr>
                                  </thead>
                                  <tbody>
                                     <template x-for="h in headerKeluar" :key="h.nomor">
                                        <tr class="hover:bg-yellow-100 cursor-pointer"
                                           @click="selectedNomor=h.nomor;
+                                          selectedNamaPasien=h.nama_pasien;
+                                          selectedNoRM=h.no_rm;
+                                          selectedTanggal = h.tanggal;
                                           fetch(`/explore/keluar/detail/${h.nomor}`)
                                           .then(r=>r.json()).then(d=>detailKeluar=d)">
                                           <td class="border px-2 py-1" x-text="new Date(h.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' })"></td>
                                           <td class="border px-2 py-1 font-mono text-blue-600" x-text="h.nomor"></td>
                                           <td class="border px-2 py-1 font-mono text-blue-600" x-text="h.nama_pasien"></td>
+                                          <td class="border px-2 py-1 text-center">
+                                             <button @click.stop="hapusDataKeluar(h.nomor)"
+                                                   class="text-red-600 hover:text-red-800">❌</button>
+                                          </td>
                                        </tr>
                                     </template>
                                  </tbody>
@@ -803,6 +1187,8 @@
 <!-- jQuery + Select2 JS -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<!-- Select2 -->
+
 <script>
    document.addEventListener("DOMContentLoaded", function () {
        let allData = []; // 🔹 simpan semua data hasil fetch
@@ -1885,4 +2271,106 @@
    }
    
 </script>
+
+<script>
+window.hapusDataKeluar = async function(nomor) {
+   if (!confirm(`Yakin hapus data dengan nomor: ${nomor}?`)) return;
+
+   try {
+      const encodedNomor = encodeURIComponent(nomor);
+      const url = `/explore/keluar/delete/${encodedNomor}`;
+
+      console.log('Mengirim DELETE ke:', url);
+
+      const res = await fetch(`/explore/keluar/delete/${encodeURIComponent(nomor)}`, {
+         method: 'DELETE',
+         headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content || '',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+         },
+         credentials: 'same-origin' // pastikan cookie session dikirim
+      });
+
+      console.log('Response status:', res.status);
+
+      let text;
+      try {
+         text = await res.text();
+         // coba parse json jika bisa
+         try { 
+            const json = JSON.parse(text);
+            console.log('Response JSON:', json);
+         } catch(e) {
+            console.log('Response text:', text);
+         }
+      } catch (e) {
+         console.error('Gagal membaca body response', e);
+      }
+
+      if (!res.ok) {
+         // tampilkan pesan spesifik
+         if (res.status === 403) alert('403 Forbidden — kemungkinan CSRF token salah atau akses ditolak.');
+         else if (res.status === 419) alert('419 CSRF token mismatch / session expired. Silakan reload halaman lalu coba lagi.');
+         else if (res.status === 404) alert('404 Not Found — cek route di server.');
+         else if (res.status >= 500) alert('Server error (' + res.status + '). Cek log laravel (storage/logs/laravel.log).');
+         else alert('Gagal menghapus data. Status: ' + res.status + '. Lihat console untuk detail respon.');
+         return;
+      }
+
+      // kalau sukses
+      const data = text ? JSON.parse(text) : { success: true };
+      if (data.success) {
+         alert('✅ Data berhasil dihapus');
+         // hapus dari tampilan jika ada headerKeluar di scope Alpine
+         try {
+            // jika tombol dipanggil di dalam Alpine component, this tidak menunjuk ke component—jadi coba update global DOM:
+            document.querySelectorAll('td.font-mono').forEach(td => {
+               if (td.innerText.trim() === nomor) {
+                  const tr = td.closest('tr');
+                  if (tr) tr.remove();
+               }
+            });
+         } catch(e){ console.warn(e) }
+      } else {
+         alert('Gagal menghapus data: ' + (data.error ?? JSON.stringify(data)));
+      }
+
+   } catch (err) {
+      console.error('Fetch error:', err);
+      alert('Terjadi kesalahan saat menghapus data (cek console untuk detail).');
+   }
+}
+</script>
+
+<script>
+async function hapusDataMasuk(nomor) {
+    if (confirm('Yakin ingin menghapus data MASUK dengan nomor ' + nomor + '?')) {
+        try {
+            const res = await fetch(`/explore/masuk/delete/${encodeURIComponent(nomor)}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content
+                }
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                alert('✅ Data MASUK berhasil dihapus');
+
+                // cari dan hapus baris tabel tanpa reload
+                const row = document.querySelector(`tr[data-nomor="${CSS.escape(nomor)}"]`);
+                if (row) row.remove();
+            } else {
+                alert('⚠️ ' + (data.error || 'Gagal menghapus data MASUK'));
+            }
+        } catch (err) {
+            alert('Terjadi kesalahan: ' + err.message);
+        }
+    }
+}
+</script>
+
 @endsection
