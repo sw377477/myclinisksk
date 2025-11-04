@@ -25,6 +25,17 @@ use App\Http\Controllers\DiagnosaController;
 use App\Http\Controllers\PendaftaranController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReportKunjunganController;
+use App\Http\Controllers\ReportObatController;
+
+Route::get('/laporan/monitoring', [ReportObatController::class, 'monitoring']);
+Route::get('/laporan/obat-rekap', [ReportObatController::class, 'rekap']);
+
+Route::get('/laporan/obat-harian', [ReportObatController::class, 'harian']);
+Route::get('/laporan/obat-harian/export/excel', [ReportObatController::class, 'exportExcel']);
+Route::get('/laporan/obat-harian/export/pdf', [ReportObatController::class, 'exportPDF']);
+Route::get('/laporan/obat-harian/print', [ReportObatController::class, 'printPreview']);
+
+Route::get('report/laporan-obat', [ReportObatController::class, 'laporan'])->name('laporan.obat');
 
 Route::prefix('report/kunjungan')->group(function () {
     Route::get('/', [ReportKunjunganController::class, 'index'])->name('report.kunjungan');

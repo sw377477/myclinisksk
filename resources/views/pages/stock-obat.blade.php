@@ -460,7 +460,10 @@
                            </select>
                            <select x-model="tahunMasuk" class="border rounded-lg px-3 py-2">
                               <option value="">-- Tahun --</option>
-                              <template x-for="th in [2023,2024,2025,2026]" :key="th">
+                              <template 
+                                 x-for="th in Array.from({ length: (new Date().getFullYear() + 1) - 2025 + 1 }, (_, i) => 2025 + i)" 
+                                 :key="th"
+                              >
                                  <option :value="th" x-text="th"></option>
                               </template>
                            </select>
@@ -704,7 +707,10 @@
                            </select>
                            <select x-model="tahunKeluar" class="border rounded-lg px-3 py-2">
                               <option value="">-- Tahun --</option>
-                              <template x-for="th in [2023,2024,2025,2026]" :key="th">
+                              <template 
+                                 x-for="th in Array.from({ length: (new Date().getFullYear() + 1) - 2025 + 1 }, (_, i) => 2025 + i)" 
+                                 :key="th"
+                              >
                                  <option :value="th" x-text="th"></option>
                               </template>
                            </select>
