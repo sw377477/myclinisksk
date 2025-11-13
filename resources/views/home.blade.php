@@ -10,7 +10,7 @@
     </div>
 
     <!-- Quick Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!--div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="bg-white rounded-xl shadow-md p-5 flex items-center">
             <div class="bg-blue-100 text-blue-600 p-3 rounded-lg mr-4">
                 <i class="fas fa-users fa-lg"></i>
@@ -40,7 +40,7 @@
                 <h3 class="text-xl font-bold">17</h3>
             </div>
         </div>
-    </div>
+    </div-->
 
     <!-- Shortcut Menu -->
     <div class="mt-8">
