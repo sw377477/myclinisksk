@@ -27,6 +27,9 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReportKunjunganController;
 use App\Http\Controllers\ReportObatController;
 
+Route::get('/satusehat/token', [App\Http\Controllers\SatusehatController::class, 'testToken']);
+Route::get('/satusehat/pasien', [App\Http\Controllers\SatusehatController::class, 'testGetPatient']);
+
 Route::get('/laporan/monitoring', [ReportObatController::class, 'monitoring']);
 Route::get('/laporan/obat-rekap', [ReportObatController::class, 'rekap']);
 

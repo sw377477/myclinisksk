@@ -230,7 +230,7 @@
                     <div>
                         <h3 class="font-semibold text-gray-800">Menu Diagnosa</h3>
                         <ul class="ml-4 list-disc text-gray-600 space-y-1">
-                            <li><button class="text-blue-600 hover:underline panduan-item">Anamnesa</button></li>
+                            <li><button class="text-blue-600 hover:underline panduan-item" data-target="popupTabDiagnosa">Anamnesa</button></li>
                             <li><button class="text-blue-600 hover:underline panduan-item">Pemberian Resep</button></li>
                         </ul>
                     </div>
@@ -239,9 +239,9 @@
                     <div>
                         <h3 class="font-semibold text-gray-800">Menu Stock Obat</h3>
                         <ul class="ml-4 list-disc text-gray-600 space-y-1">
-                            <li><button class="text-blue-600 hover:underline panduan-item">Form Saldo Obat</button></li>
-                            <li><button class="text-blue-600 hover:underline panduan-item">Transaksi Obat</button></li>
-                            <li><button class="text-blue-600 hover:underline panduan-item">PP Obat</button></li>
+                            <li><button class="text-blue-600 hover:underline panduan-item" data-target="popupTabSaldoObat">Form Saldo Obat</button></li>
+                            <li><button class="text-blue-600 hover:underline panduan-item" data-target="popupTabTransaksiObat">Transaksi Obat</button></li>
+                            <li><button class="text-blue-600 hover:underline panduan-item" data-target="popupTabPPObat">PP Obat</button></li>
                         </ul>
                     </div>
 
@@ -257,6 +257,11 @@
                 </div>
 
                 <div class="mt-6 text-right">
+                    <button id="btnPdfPanduan"
+                        class="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded">
+                         <strong>PDF</strong>
+                    </button>
+
                     <button id="btnTutupPanduan"
                         class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-1 rounded">
                         Tutup
@@ -363,6 +368,85 @@
             </div>
         </div>
 
+        <!-- POPUP KHUSUS TAB Diagnosa -->
+        <div id="popupTabDiagnosa"
+            class="fixed inset-0 hidden bg-black/40 flex items-center justify-center z-[60] opacity-0 transition-opacity duration-300">
+            <div class="bg-white w-[500px] rounded-lg shadow-lg p-6 transform scale-95 transition-transform duration-300">
+                <h3 class="text-xl font-bold mb-3 text-gray-800">📝 Panduan Entry Diagnosa</h3>
+                <ol class="list-decimal ml-5 text-gray-700 space-y-1">
+                    <li>Buka menu Diagnosa kemudian<strong> Tab Anamnesa</strong> akan disajikan menu form Entry.</li>
+                    <li>Pilih nama pasien yang berkunjung hari ini, maka akan ditampilkan informasi umum dari pasien.</li>
+                    <li>Isi Keluhan Utama (Wajib) - Riwayat (Optional).</li>
+                    <li>Kemudian pilih / tentukan jenis Diangnosa (kode ICD) yang tersedia pada dropdown.</li>
+                    <li>Kemudian klik Simpan Diagnosa.</li>
+                </ol>
+                <div class="mt-5 text-right">
+                    <button class="close-detail bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded">Tutup</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- POPUP KHUSUS TAB Form Saldo Obat -->
+        <div id="popupTabSaldoObat"
+            class="fixed inset-0 hidden bg-black/40 flex items-center justify-center z-[60] opacity-0 transition-opacity duration-300">
+            <div class="bg-white w-[500px] rounded-lg shadow-lg p-6 transform scale-95 transition-transform duration-300">
+                <h3 class="text-xl font-bold mb-3 text-gray-800"> Panduan Form Saldo Obat</h3>
+                <ol class="list-decimal ml-5 text-gray-700 space-y-1">
+                    <li>Buka menu Stock Obat kemudian<strong> Tab Form Saldo Obat</strong> akan disajikan menu Saldo Obat.</li>
+                    <li>Pilih bulan dan tahun pada dropdown yang tersedia.</li>
+                    <li>Gunakan button syncronisasi saldo jika diperlukan, ini berfungsi untuk menyeimbangkan saldo jika stock awal, obat masuk, obat keluar serta saldo akhir belum balance.</li>
+                    <li>Gunakan fitur Export Excel jika diperlukan.</li>
+                    <li>Cari🔍 data obat yang diperlukan pada placeholder searching yang tersedia berdasarkan Kode atau Nama Obat.</li>
+                </ol>
+                <div class="mt-5 text-right">
+                    <button class="close-detail bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded">Tutup</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- POPUP KHUSUS TAB Form Transaksi Obat -->
+        <div id="popupTabTransaksiObat"
+            class="fixed inset-0 hidden bg-black/40 flex items-center justify-center z-[60] opacity-0 transition-opacity duration-300">
+            <div class="bg-white w-[500px] rounded-lg shadow-lg p-6 transform scale-95 transition-transform duration-300">
+                <h3 class="text-xl font-bold mb-3 text-gray-800"> Panduan Transaksi Obat</h3>
+                <ol class="list-decimal ml-5 text-gray-700 space-y-1">
+                    <li>LT : <strong> Tab Entry Obat Masuk</strong> akan disajikan menu Entry Transaksi.</li>
+                    <li>Tentukan Tanggal Transaksi Obat masuk maka akan terbentuk nomor urut LT transaksi otomatis pada bulan yang dipilih.</li>
+                    <li>Kemudian Cari nama obat sesuai SPB/Surat Jalan dan masukkan quantity,harga,tanggal expired, serta No. batch</li>
+                    <li>Tambah ➕ Baris untuk input obat masuk berikutnya, Hapus ❌ baris yang tidak diinginkan.</li>
+                    <li>Kemudian klik Simpan jika semua sudah terpenuhi, tekan Clear jika ingin membatalkan transaksi.</li>
+                    <li>LK : <strong> Tab Entry Obat Keluar</strong> akan disajikan menu Entry Transaksi.</li>
+                    <li>Tentukan Tanggal Transaksi Obat Keluar maka akan terbentuk nomor urut LK transaksi otomatis pada bulan yang dipilih.</li>
+                    <li>Pilih nama Pasien yang sudah ada dalam daftar kunjungan.</li>
+                    <li>Kemudian Cari nama obat sesuai Resep yang diberikan, kemudian masukkan quantity</li>
+                    <li>Tambah ➕ Baris untuk input obat masuk berikutnya, Hapus ❌ baris yang tidak diinginkan.</li>
+                    <li>Kemudian klik Simpan jika semua sudah terpenuhi, tekan Clear jika ingin membatalkan transaksi.</li>
+                    <li>Lihat data transaksi LT dan LK pada <strong>Tab Explore Data</strong> pilih bulan dan tahun kemudian tampilkan LT atau LK, gunakan fitur edit jika diperlukan</li>
+                </ol>
+                <div class="mt-5 text-right">
+                    <button class="close-detail bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded">Tutup</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- POPUP KHUSUS TAB Form Saldo Obat -->
+        <div id="popupTabPPObat"
+            class="fixed inset-0 hidden bg-black/40 flex items-center justify-center z-[60] opacity-0 transition-opacity duration-300">
+            <div class="bg-white w-[500px] rounded-lg shadow-lg p-6 transform scale-95 transition-transform duration-300">
+                <h3 class="text-xl font-bold mb-3 text-gray-800"> Panduan Form PP Obat</h3>
+                <ol class="list-decimal ml-5 text-gray-700 space-y-1">
+                    <li>Pilih <strong>Tab Informasi Stock Minimal </strong> terlebih dahulu untuk mengetahui stock akhir atau status PP, jika stock akhir sama dengan stock minimal atau stock akhir kurang dari stock minimal maka akan otomatis masuk dalam daftar PP.</li>
+                    <li>Kemudian pilih Golongan jenis obat yang akan di PP-kan.</li>
+                    <li>Lalu klik Transfer ke Format PP.</li>
+                    <li>Pada <strong>Tab Format PP</strong>, Isikan jumlah obat yang akan di PP-kan jika sudah terpenuhi maka klik Simpan.</li>
+                    <li>Masuk ke <strong>Tab Daftar PP</strong> untuk melihat detail PP Obat dan mencetak atau mengexport detail PP untuk dipergunakan sebagaimana-mestinya.</li>
+                </ol>
+                <div class="mt-5 text-right">
+                    <button class="close-detail bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded">Tutup</button>
+                </div>
+            </div>
+        </div>
+
     </aside>
 
     {{-- Main Content --}}
@@ -380,13 +464,18 @@
     const panduanModal = document.getElementById('panduanModal');
     const btnPanduan = document.getElementById('btnBukaPanduan');
     const btnTutup = document.getElementById('btnTutupPanduan');
-
+    const btnPdf = document.getElementById('btnPdfPanduan');
+   
     // Buka popup utama
     btnPanduan.addEventListener('click', () => {
         panduanModal.classList.remove('hidden');
         setTimeout(() => {
             panduanModal.classList.remove('opacity-0', 'scale-95');
         }, 10);
+    });
+
+    btnPdf.addEventListener('click', function () {
+        window.open('/panduan/panduan_myclinis.pdf', '_blank');
     });
 
     // Tutup popup utama
