@@ -832,25 +832,55 @@ function exploreData(tab) {
      radioNonKary.disabled = true;
    
      // ======== LOGIKA INTERNAL / EXTERNAL ========
-     combo.addEventListener('change', function () {
-       const selectedValue = this.value.trim().toUpperCase();
-   
-       if (selectedValue === 'INTERNAL') {
-         radioKary.checked = true;
-         radioKary.disabled = false;
-         radioNonKary.disabled = false;
-       } else if (selectedValue === 'EXTERNAL') {
-         radioKary.checked = false;
-         radioNonKary.checked = false;
-         radioKary.disabled = true;
-         radioNonKary.disabled = true;
-       } else {
-         radioKary.checked = false;
-         radioNonKary.checked = false;
-         radioKary.disabled = true;
-         radioNonKary.disabled = true;
-       }
-     });
+      combo.addEventListener('change', function () {
+         const selectedValue = this.value.trim().toUpperCase();
+         const namaLengkap = document.getElementById('namaLengkap');
+         const btnCari = document.getElementById('btnCari');
+
+         if (selectedValue === 'INTERNAL') {
+            // Radio aktif
+            radioKary.checked = true;
+            radioKary.disabled = false;
+            radioNonKary.disabled = false;
+
+            // Nama lengkap hanya bisa diisi via pencarian
+            namaLengkap.value = '';
+            namaLengkap.readOnly = true;
+
+            // Tombol cari aktif
+            btnCari.disabled = false;
+            btnCari.classList.remove('opacity-50');
+         } 
+         else if (selectedValue === 'EXTERNAL') {
+            // Radio harus mati
+            radioKary.checked = false;
+            radioNonKary.checked = false;
+            radioKary.disabled = true;
+            radioNonKary.disabled = true;
+
+            // Nama lengkap boleh diketik manual
+            namaLengkap.value = '';
+            namaLengkap.readOnly = false;
+
+            // Tombol cari dimatikan
+            btnCari.disabled = true;
+            btnCari.classList.add('opacity-50');
+         } 
+         else {
+            // Default: semua nonaktif
+            radioKary.checked = false;
+            radioNonKary.checked = false;
+            radioKary.disabled = true;
+            radioNonKary.disabled = true;
+
+            namaLengkap.value = '';
+            namaLengkap.readOnly = true;
+
+            btnCari.disabled = true;
+            btnCari.classList.add('opacity-50');
+         }
+      });
+
    
      // ======== AMBIL DATA KARYAWAN ========
      let semuaKaryawan = [];
