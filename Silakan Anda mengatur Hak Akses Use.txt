@@ -1,9 +1,0 @@
-Silakan Anda mengatur Hak Akses User / User Privilege ke database tujuan dahulu.
-
-Caranya:
-1. Masuk ke cPanel
-2. Cari PostgreSQL Databases
-3. Scroll pada bagian Add User To Database
-4. Add User ke Database tujuan (https://dnva.me/TBxgz)
-5. Klik Synchronize Grants https://dnva.me/J3YRiS6KpJzc
-6. Klik Submit

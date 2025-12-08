@@ -434,18 +434,20 @@ public function headerMasuk($tahun, $bulan)
     }
 
     public function detailKeluar($nomor)
-    {
-        $rows = DB::select("
-            SELECT ROW_NUMBER() OVER(ORDER BY b.nama_obat) AS no,
-                   a.kode, b.nama_obat, a.qty, a.satuan, a.harga, a.jumlah
-            FROM rme_obat_keluar a
-            JOIN rme_master_obat b ON b.kode_obat = a.kode
-            WHERE a.nomor = ?
-            ORDER BY b.nama_obat
-        ", [$nomor]);
+{
+    $nomor = urldecode($nomor);
 
-        return response()->json($rows);
-    }
+    $rows = DB::select("
+        SELECT a.id, ROW_NUMBER() OVER(ORDER BY b.nama_obat) AS no,
+               a.kode, b.nama_obat, a.qty, a.satuan, a.harga, a.jumlah
+        FROM rme_obat_keluar a
+        JOIN rme_master_obat b ON b.kode_obat = a.kode
+        WHERE a.nomor = ?
+        ORDER BY b.nama_obat
+    ", [$nomor]);
+
+    return response()->json($rows);
+}
 
 
 //Informasi Stock Minimal -Tab

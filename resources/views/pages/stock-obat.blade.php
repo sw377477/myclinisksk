@@ -648,24 +648,21 @@
                                  editRows: [],
 
                                  async bukaEditLK(nomor) {
-                                       if (!nomor) {
-                                          alert('⚠️ Pilih nomor dulu dari daftar sebelum mengedit!');
-                                          return;
-                                       }
-                                       this.selectedNomor = nomor;
-                                       this.showModalEdit = true;
+                                    
+                                    this.selectedNomor = nomor;
+                                    this.showModalEdit = true;
 
-                                       const res = await fetch(`/explore/keluar/detail/${encodeURIComponent(nomor)}`);
-                                       const data = await res.json();
-
-                                       this.editRows = data.map(r => ({
-                                          id: r.id,
-                                          kode: r.kode,
-                                          satuan: r.satuan,
-                                          qty: r.qty,
-                                          harga: r.harga,
-                                          jumlah: r.jumlah
-                                       }));
+                                    const res = await fetch(`explore/keluar/detail/${encodeURIComponent(nomor)}`);
+                                    const data = await res.json();
+                                    
+                                    this.editRows = data.map(r => ({
+                                       id: r.id,
+                                       kode: r.kode,
+                                       satuan: r.satuan,
+                                       qty: r.qty,
+                                       harga: r.harga,
+                                       jumlah: r.jumlah
+                                    }));
                                  },
 
                                  tambahBarisEdit() {
@@ -2046,6 +2043,7 @@
    
    
 </script>
+
 <script>
    function daftarPP() {
        return {
