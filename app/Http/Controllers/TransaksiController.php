@@ -435,7 +435,6 @@ public function headerMasuk($tahun, $bulan)
 
     public function detailKeluar($nomor)
 {
-    $nomor = urldecode($nomor);
 
     $rows = DB::select("
         SELECT a.id, ROW_NUMBER() OVER(ORDER BY b.nama_obat) AS no,

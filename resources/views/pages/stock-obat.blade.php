@@ -648,6 +648,10 @@
                                  editRows: [],
 
                                  async bukaEditLK(nomor) {
+                                       if (!nomor) {
+                                          alert('⚠️ Pilih nomor dulu dari daftar sebelum mengedit!');
+                                          return;
+                                       }
                                     
                                     this.selectedNomor = nomor;
                                     this.showModalEdit = true;
@@ -722,87 +726,88 @@
                               </button>
 
                               <!-- Modal popup edit -->
-                              <div x-show="showModalEdit" x-transition
-                                 class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-                                 <div id="modalEditContainer" class="bg-white rounded-xl shadow-xl p-4 w-[900px]" @click.outside="showModalEdit=false; editRows=[]">
+            <div x-show="showModalEdit" x-transition
+               class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+               <div id="modalEditContainer" class="bg-white rounded-xl shadow-xl p-4 w-[900px]" 
+                     @click.outside="showModalEdit=false; editRows=[]">
 
-                                    <h2 class="text-lg font-semibold mb-3">Edit Data LK: <span x-text="selectedNomor"></span></h2>
+                  <h2 class="text-lg font-semibold mb-3">Edit Data LK: <span x-text="selectedNomor"></span></h2>
 
-                                    <!-- tabel input -->
-                                    <div class="overflow-x-auto max-h-[400px] overflow-y-auto">
-                                          <table class="min-w-full border border-gray-300 text-sm">
-                                             <thead class="bg-gray-100">
-                                                <tr>
-                                                      <th class="border px-3 py-2 text-center w-72">Obat</th>
-                                                      <th class="border px-3 py-2 text-center w-24">Satuan</th>
-                                                      <th class="border px-3 py-2 text-center w-20">Qty</th>
-                                                      <th class="border px-3 py-2 text-center w-32">Harga</th>
-                                                      <th class="border px-3 py-2 text-center w-32">Jumlah</th>
-                                                      <th class="border px-3 py-2 text-center w-10">Aksi</th>
-                                                </tr>
-                                             </thead>
-                                             <tbody>
-                                                <template x-for="(r, i) in editRows" :key="r.id ?? i">
-                                                      <tr x-effect="r.jumlah = (parseFloat(r.qty||0) * parseFloat(r.harga||0)).toFixed(2)">
-                                                         <td class="border px-2 py-1">
-                                                            <select x-model="r.kode"
-                                                            x-init="$nextTick(() => { 
-                                                                        const el = $el;
-                                                                        $(el).select2({
-                                                                           placeholder: '🔍 Cari obat...',
-                                                                           allowClear: true,
-                                                                           width: '100%',
-                                                                           dropdownParent: $('#modalEditContainer')
-                                                                        });
-                                                                        $(el).on('change', (e) => {
-                                                                           const selected = e.target.selectedOptions[0];
-                                                                           r.kode = e.target.value;
-                                                                           r.satuan = selected?.dataset.satuan || '';
-                                                                           r.harga = parseFloat(selected?.dataset.harga || 0);
-                                                                           r.jumlah = (r.qty * r.harga).toFixed(2);
-                                                                        });
-                                                                  })"
-                                                                  class="select2-obat border rounded px-2 py-1 w-full">
-                                                               <option value="">-- Pilih Obat --</option>
-                                                               @foreach($obatList ?? [] as $obat)
-                                                               <option value="{{ $obat->kode_obat }}" 
-                                                                        data-satuan="{{ $obat->satuan }}">
-                                                                  {{ $obat->nama_obat }}
-                                                               </option>
-                                                               @endforeach
-                                                            </select>
-                                                         </td>
-                                                         <td class="border px-2 py-1">
-                                                            <input type="text" x-model="r.satuan" class="border rounded px-2 py-1 w-full text-center" readonly>
-                                                         </td>
-                                                         <td class="border px-2 py-1">
-                                                            <input type="number" x-model.number="r.qty" class="border rounded px-2 py-1 w-full text-right" @input="r.jumlah = (r.qty * r.harga).toFixed(2)">
-                                                         </td>
-                                                         <td class="border px-2 py-1">
-                                                            <input type="number" x-model.number="r.harga" class="border rounded px-2 py-1 w-full text-right" @input="r.jumlah = (r.qty * r.harga).toFixed(2)">
-                                                         </td>
-                                                         <td class="border px-2 py-1">
-                                                            <input type="number" x-model.number="r.jumlah" class="border rounded px-2 py-1 w-full text-right" readonly>
-                                                         </td>
-                                                         <td class="border px-2 py-1 text-center">
-                                                            <button @click="hapusBarisEdit(i)" class="bg-red-500 text-white px-2 py-1 rounded">✕</button>
-                                                         </td>
-                                                      </tr>
-                                                </template>
-                                             </tbody>
-                                          </table>
-                                    </div>
+                  <!-- Tabel input -->
+                  <div class="overflow-x-auto max-h-[400px] overflow-y-auto">
+                        <table class="min-w-full border border-gray-300 text-sm">
+                           <thead class="bg-gray-100">
+                              <tr>
+                                    <th class="border px-3 py-2 text-center w-72">Obat</th>
+                                    <th class="border px-3 py-2 text-center w-24">Satuan</th>
+                                    <th class="border px-3 py-2 text-center w-20">Qty</th>
+                                    <th class="border px-3 py-2 text-center w-32">Harga</th>
+                                    <th class="border px-3 py-2 text-center w-32">Jumlah</th>
+                                    <th class="border px-3 py-2 text-center w-10">Aksi</th>
+                              </tr>
+                           </thead>
+                           <tbody>
+                              <template x-for="(r, i) in editRows" :key="r.id ?? i">
+                                    <tr x-effect="r.jumlah = (parseFloat(r.qty||0) * parseFloat(r.harga||0)).toFixed(2)">
+                                       <td class="border px-2 py-1">
+                                          <select x-model="r.kode"
+                                                   x-init="$nextTick(() => { 
+                                                      const el = $el;
+                                                      $(el).select2({
+                                                            placeholder: '🔍 Cari obat...',
+                                                            allowClear: true,
+                                                            width: '100%',
+                                                            dropdownParent: $('#modalEditContainer')
+                                                      });
+                                                      $(el).on('change', (e) => {
+                                                            const selected = e.target.selectedOptions[0];
+                                                            r.kode = e.target.value;
+                                                            r.satuan = selected?.dataset.satuan || '';
+                                                            r.harga = parseFloat(selected?.dataset.harga || 0);
+                                                            r.jumlah = (r.qty * r.harga).toFixed(2);
+                                                      });
+                                                   })"
+                                                   class="select2-obat border rounded px-2 py-1 w-full">
+                                                <option value="">-- Pilih Obat --</option>
+                                                @foreach($obatList ?? [] as $obat)
+                                                   <option value="{{ $obat->kode_obat }}" 
+                                                            data-satuan="{{ $obat->satuan }}">
+                                                      {{ $obat->nama_obat }}
+                                                   </option>
+                                                @endforeach
+                                          </select>
+                                       </td>
+                                       <td class="border px-2 py-1">
+                                          <input type="text" x-model="r.satuan" class="border rounded px-2 py-1 w-full text-center" readonly>
+                                       </td>
+                                       <td class="border px-2 py-1">
+                                          <input type="number" x-model.number="r.qty" class="border rounded px-2 py-1 w-full text-right" @input="r.jumlah = (r.qty * r.harga).toFixed(2)">
+                                       </td>
+                                       <td class="border px-2 py-1">
+                                          <input type="number" x-model.number="r.harga" class="border rounded px-2 py-1 w-full text-right" @input="r.jumlah = (r.qty * r.harga).toFixed(2)">
+                                       </td>
+                                       <td class="border px-2 py-1">
+                                          <input type="number" x-model.number="r.jumlah" class="border rounded px-2 py-1 w-full text-right" readonly>
+                                       </td>
+                                       <td class="border px-2 py-1 text-center">
+                                          <button @click="hapusBarisEdit(i)" class="bg-red-500 text-white px-2 py-1 rounded">✕</button>
+                                       </td>
+                                    </tr>
+                              </template>
+                           </tbody>
+                        </table>
+                  </div>
 
-                                    <div class="mt-3 flex justify-between">
-                                          <button @click="tambahBarisEdit()" class="bg-blue-500 text-white px-4 py-2 rounded">+ Tambah Baris</button>
-                                          <div class="space-x-2">
-                                             <button @click="simpanEditLK()" class="bg-green-600 text-white px-4 py-2 rounded">💾 Simpan</button>
-                                             <button @click="showModalEdit=false; editRows=[]" class="bg-gray-400 text-white px-4 py-2 rounded">Tutup</button>
-                                          </div>
-                                    </div>
+                  <div class="mt-3 flex justify-between">
+                        <button @click="tambahBarisEdit()" class="bg-blue-500 text-white px-4 py-2 rounded">+ Tambah Baris</button>
+                        <div class="space-x-2">
+                           <button @click="simpanEditLK()" class="bg-green-600 text-white px-4 py-2 rounded">💾 Simpan</button>
+                           <button @click="showModalEdit=false; editRows=[]" class="bg-gray-400 text-white px-4 py-2 rounded">Tutup</button>
+                        </div>
+                  </div>
 
-                                 </div>
-                              </div>
+               </div>
+            </div>
                         </div>                        
                         
                         <!-- Tabel -->
