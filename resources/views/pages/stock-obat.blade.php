@@ -656,7 +656,7 @@
                                     this.selectedNomor = nomor;
                                     this.showModalEdit = true;
 
-                                    const res = await fetch(`explore/keluar/detail/${encodeURIComponent(nomor)}`);
+                                    const res = await fetch(`/explore/keluar/detail/${encodeURIComponent(nomor)}`);
                                     const data = await res.json();
                                     
                                     this.editRows = data.map(r => ({
