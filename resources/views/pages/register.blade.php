@@ -892,6 +892,8 @@ function exploreData(tab) {
 
             btnCari.disabled = true;
             btnCari.classList.add('opacity-50');
+
+            ambilIdMember();
          } 
 
          // ========== DEFAULT ==========

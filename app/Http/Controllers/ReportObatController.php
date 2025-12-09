@@ -164,7 +164,7 @@ public function rekap(Request $r)
         FROM rme_obat_keluar a
         JOIN rme_master_obat b ON b.kode_obat = a.kode
         JOIN rme_entry_member c ON TRIM(c.no_rm) = TRIM(a.no_rm)
-        JOIN rme_entry_diagnosa d ON TRIM(d.no_rm) = TRIM(a.no_rm) AND d.created_at = a.tanggal
+        left JOIN rme_entry_diagnosa d ON TRIM(d.no_rm) = TRIM(a.no_rm) AND d.created_at = a.tanggal
         WHERE a.lokasi = ? 
           AND a.periode = ?
         ORDER BY a.tanggal, a.nama_pasien
